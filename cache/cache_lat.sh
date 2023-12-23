@@ -14,11 +14,11 @@ function print_usage() {
   ${BLUE}l1${NONE}    test l1 cache latency
   ${BLUE}l2${NONE}    test l2 cache latency
   ${BLUE}l3${NONE}    test l3 cache latency
-  ${BLUE}all${NONE}   test all cache latency(default)"
+  ${BLUE}all${NONE}   test all cache latency"
 
   echo -e "\n${RED}FULL/FAST${NONE}:
   ${BLUE}full${NONE}   test with small interval and long time
-  ${BLUE}fast${NONE}   test with large interval and short time(default)
+  ${BLUE}fast${NONE}   test with large interval and short time
   "
 }
 
@@ -55,14 +55,12 @@ function save_info() {
   " >> $dir/info.txt
 }
 
-if [[ $# -lt 1 ]]; then $1 = "all"; fi
 if [[ $1 != "l1" && $1 != "l2" && $1 != "l3" && $1 != "all" ]]; then
   print_usage
   exit 1
 fi
 option=$1
 
-if [[ $# -lt 2 ]]; then $2 = "fast"; fi
 if [[ $2 != *"full"* && $2 != *"fast"* ]]; then
   print_usage
   exit 1
