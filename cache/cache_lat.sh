@@ -1,6 +1,6 @@
 #!/bin/bash
 
-work=./mem_lat
+work=./cache_lat
 
 function print_usage() {
 	RED='\033[0;31m'
@@ -70,7 +70,7 @@ fi
 mode=$2
 
 # create a dir named as timestamp
-dir=results/mem_lat_$(date +"%Y%m%d%H%M%S")
+dir=results/cache_lat_$(date +"%Y%m%d%H%M%S")
 mkdir -p $dir
 
 # collect cache information(cache size is in KB)
@@ -130,7 +130,7 @@ do
       for buffer_size in $(seq $buffer_size_begin $interval $buffer_size_end); do
         # set core affinity
         taskset -ac 2 $work -b $buffer_size -s $stride
-      done >> $dir/mem_lat_$stride.log
+      done >> $dir/cache_lat_$stride.log
     fi
   done
   echo "Stride $stride finished"
@@ -155,8 +155,8 @@ save_info
 
 # merge all log files
 for stride in ${strides[@]}; do
-  echo "$dir/mem_lat_$stride.log"
-done | xargs paste -d' ' > $dir/mem_lat.log
+  echo "$dir/cache_lat_$stride.log"
+done | xargs paste -d' ' > $dir/cache_lat.log
 
 # prepare csv header
 csv_header="buffer_size"
@@ -174,13 +174,13 @@ do
 done
 
 # convert to csv format
-cat $dir/mem_lat.log | awk -v csv_header="$csv_header" -v csv_cols="$csv_cols" \
+cat $dir/cache_lat.log | awk -v csv_header="$csv_header" -v csv_cols="$csv_cols" \
   'BEGIN{print csv_header; FS=" "; OFS=","; split(csv_cols, cols, " ");} \
   {for (i in cols) {printf "%s%s", $cols[i], (i==length(cols)?"\n":OFS);}}' \
-> $dir/mem_lat.csv
+> $dir/cache_lat.csv
 
-echo "Results are saved in $dir/mem_lat.csv"
+echo "Results are saved in $dir/cache_lat.csv"
 
 # draw the graph
-python3 ./mem_lat.py $dir
-echo "Image are saved in $dir/mem_lat.png"
+python3 ./cache_lat.py $dir
+echo "Image are saved in $dir/cache_lat.png"

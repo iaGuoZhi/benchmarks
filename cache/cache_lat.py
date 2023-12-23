@@ -10,8 +10,8 @@ if not len(sys.argv) == 2:
     sys.exit(f'Usage: python3 {script} work_dir')
 work_dir = sys.argv[1]
 
-csv_filename = f'{work_dir}/mem_lat.csv'
-png_filename = f'{work_dir}/mem_lat.png'
+csv_filename = f'{work_dir}/cache_lat.csv'
+png_filename = f'{work_dir}/cache_lat.png'
 info_filename = f'{work_dir}/info.txt'
 
 with open(info_filename, 'r') as file:
