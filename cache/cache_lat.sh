@@ -107,7 +107,7 @@ buffer_size_range_begins=($l1_buffer_size_begin $l1_buffer_size_end $l2_buffer_s
 buffer_size_range_ends=($l1_buffer_size_end $l2_buffer_size_begin $l2_buffer_size_end $l3_buffer_size_begin $l3_buffer_size_end)
 buffer_size_range_options=("l1 all" "all" "l2 all" "all" "l3 all")
 full_mode_intervals=(2 4 4 8 8)
-fast_mode_intervals=(2 8 16 32 64)
+fast_mode_intervals=(2 8 16 64 128)
 # stride choices, default cache line size is 64 bytes
 strides=(64 128 256 512)
 
