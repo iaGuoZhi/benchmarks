@@ -1,6 +1,10 @@
 #!/bin/bash
 
 work=./ram_lat
+if [ ! -f "$work" ]; then
+  echo "File '$work' does not exist. Please compile it before running $0"
+  exit 1
+fi
 
 function print_usage() {
 	RED='\033[0;31m'
@@ -40,6 +44,10 @@ fi
 
 tREFI=$1
 
+# make sure results directory exists
+if [ ! -d "results" ]; then
+  mkdir "results"
+fi
 # create a dir named as timestamp
 dir=results/ram_lat_$(date +"%Y%m%d%H%M%S")
 mkdir -p $dir
@@ -48,8 +56,17 @@ taskset -ac 2 $work > $dir/ram_lat.csv
 echo "Result are saved in $dir/ram_lat.csv"
 
 # collect hardware info
-cpu_freq=$(cat /sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq)
-mem_freq=$(sudo dmidecode -t memory | grep "Speed" | head -n 1 | awk '{print $2}')
+cpu_freq_file=/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq
+if [ -f "$cpu_freq_file" ]; then
+    cpu_freq=$(cat /sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq)
+else
+    cpu_freq="Unknown"
+fi
+if sudo -n -v >/dev/null 2>&1; then
+    mem_freq=$(sudo dmidecode -t memory | grep "Speed" | head -n 1 | awk '{print $2}')
+else
+    mem_freq="Unknown"
+fi
 
 # run multiple times to get minimal frequency spike, which can help to avoid the effect of harmonics
 echo "Run multiple times to avoid harmonics"
@@ -78,5 +95,16 @@ echo "Interval(ns): $interval"
 
 save_info
 
+# make sure python packages in requirements.txt have been installed
+if [ -f "requirements.txt" ]; then
+  while read -r package; do
+    if python -c "import $package" >/dev/null 2>&1; then
+      echo "Installing $package..."
+      pip install "$package"
+    fi
+  done < requirements.txt > /dev/null 2>&1
+fi
+
 python3 ./ram_lat_draw.py $dir
 echo "Image are saved in $dir/ram_lat.png"
+
