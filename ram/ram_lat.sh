@@ -107,4 +107,3 @@ fi
 
 python3 ./ram_lat_draw.py $dir
 echo "Image are saved in $dir/ram_lat.png"
-
