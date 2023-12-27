@@ -8,22 +8,22 @@ function print_usage() {
 	BOLD='\033[1m'
 	NONE='\033[0m'
 
-  # Looks ungly because we can't get tREFi from OS
-  echo -e "\n${RED}Usage${NONE}: ${BOLD}$0${NONE} [tREFi]"
+  # Looks ungly because we can't get tREFI from OS
+  echo -e "\n${RED}Usage${NONE}: ${BOLD}$0${NONE} [tREFI]"
 
-  echo -e "\n${RED}tREFi${NONE}:
-  ${BLUE}0${NONE}    tREFi unknown
-  ${BLUE}number${NONE}    number of tREFi in BIOS
+  echo -e "\n${RED}tREFI${NONE}:
+  ${BLUE}0${NONE}    tREFI unknown
+  ${BLUE}number${NONE}    number of tREFI in BIOS
   "
 }
 
 function save_info() {
   echo -e "Time: $(date +"%Y-%m-%d %H:%M:%S")" >> $dir/info.txt
   echo -e "Hostname: $(hostname)" >> $dir/info.txt
-  if [[ $tREFi -eq 0 ]]; then
-    echo "tREFi: unknown" >> $dir/info.txt
+  if [[ $tREFI -eq 0 ]]; then
+    echo "tREFI: unknown" >> $dir/info.txt
   else
-    echo "tREFi: $tREFi" >> $dir/info.txt
+    echo "tREFI: $tREFI" >> $dir/info.txt
   fi
   echo -e "CPU model:
   $(cat /proc/cpuinfo | grep "model name" | uniq | cut -d':' -f2-)" >> $dir/info.txt
@@ -37,6 +37,8 @@ if [[ $# -eq 0 ]]; then
   print_usage
   exit 1
 fi
+
+tREFI=$1
 
 # create a dir named as timestamp
 dir=results/ram_lat_$(date +"%Y%m%d%H%M%S")
