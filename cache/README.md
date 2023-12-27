@@ -2,4 +2,4 @@
 
 ## Run
 
-/bin/bash ./mem_lat.sh all full
+/bin/bash ./ram_lat.sh all full
