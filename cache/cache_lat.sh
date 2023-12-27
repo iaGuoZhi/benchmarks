@@ -130,7 +130,7 @@ range_ends=($l1_range_end $l2_range_begin $l2_range_end $l3_range_begin $l3_rang
 # which option measure the range
 range_options=("l1 all" "all" "l2 all" "all" "l3 all")
 full_mode_range_intervals=(2 4 4 8 8)
-fast_mode_range_intervals=(16 32 16 32 64)
+fast_mode_range_intervals=(4 8 16 32 64)
 # stride choices, default cache line size is 64 bytes
 strides=(64 128 256 512)
 
