@@ -78,16 +78,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    //for (i = 0; i < size - 4; i++) {
-    //    //l2 cache is 4 way associate
-    //    j = i +  (rand() % ((size - i) / 4)) * 4;
-    //    if (i != j) {
-    //        tmp = indices[i];
-    //        indices[i] = indices[j];
-    //        indices[j] = tmp;
-    //    }
-    //}
-
     // trick 2: fill mem with pointer references
     for (i = 0; i < size - 1; i++)
         *(char **)&mem[indices[i]*stride]= (char*)&mem[indices[i+1]*stride];
