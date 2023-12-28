@@ -151,7 +151,7 @@ do
     range_interval=${range_intervals[$i]}
     if grep -qF "$option" <<< "$range_option"; then
       temp_file=$(mktemp)
-      for buffer_size in $(seq $range_begin $interval $range_end); do
+      for buffer_size in $(seq $range_begin $range_interval $range_end); do
         # set core affinity
         taskset -ac 2 $work -b $buffer_size -s $stride
       done > $temp_file
