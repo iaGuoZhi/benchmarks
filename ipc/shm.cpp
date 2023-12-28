@@ -5,9 +5,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <atomic>
 #include <iostream>
 #include <cstring>
-
 
 unsigned int default_buffer_size = 1024;
 unsigned int default_number_of_ipc = 10000;
@@ -18,33 +18,30 @@ DEFINE_int32(number_of_ipc, default_number_of_ipc, "number of operations");
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  int fds[2];
   unsigned long sec, usec;
   struct timeval tv1, tv2;
   struct timezone tz;
   char *buffer;
   int buffer_size = FLAGS_buffer_size;
   int number_of_ipc = FLAGS_number_of_ipc;
+  std::atomic<int> atomic_lock(0);
 
-  pipe(fds);
   buffer = (char *)malloc(buffer_size);
+
   pid_t pid = fork();
   if (pid == 0) {
     // child process
     for (int i = 0; i < number_of_ipc; i++) {
       memset(buffer, i, buffer_size);
-      if (write(fds[1], buffer, buffer_size) != buffer_size) {
-        std::cout << "child write error" << std::endl;
-      }
+      atomic_store(&atomic_lock, 1);
     }
   } else {
     // parent process
     gettimeofday(&tv1, &tz);
     for (int i = 0; i < number_of_ipc; i++) {
-      if (read(fds[0], buffer, buffer_size) != buffer_size) {
-        std::cout << "parent read error" << std::endl;
-      }
+      while(atomic_load(&atomic_lock) != 0);
       memset(buffer, 0, buffer_size);
+      atomic_store(&atomic_lock, 0);
     }
     gettimeofday(&tv2, &tz);
 
