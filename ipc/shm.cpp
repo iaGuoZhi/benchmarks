@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <unistd.h>
 #include <atomic>
 #include <iostream>
@@ -26,21 +28,25 @@ int main(int argc, char* argv[]) {
   int number_of_ipc = FLAGS_number_of_ipc;
   std::atomic<int> atomic_lock(0);
 
-  buffer = (char *)malloc(buffer_size);
+  int shmid = shmget(IPC_PRIVATE, buffer_size, IPC_CREAT | 0666);
+  buffer = static_cast<char*>(shmat(shmid, nullptr, 0));
 
   pid_t pid = fork();
   if (pid == 0) {
     // child process
     for (int i = 0; i < number_of_ipc; i++) {
-      memset(buffer, i, buffer_size);
+      char ch = 'a' + i % 26;
+      memset(buffer, ch, buffer_size);
       atomic_store(&atomic_lock, 1);
     }
   } else {
     // parent process
+    char dest[buffer_size];
     gettimeofday(&tv1, &tz);
     for (int i = 0; i < number_of_ipc; i++) {
       while(atomic_load(&atomic_lock) != 0);
-      memset(buffer, 0, buffer_size);
+      memcpy(dest, buffer, buffer_size);
+      //std::cout << *dest << std::endl;
       atomic_store(&atomic_lock, 0);
     }
     gettimeofday(&tv2, &tz);
@@ -58,6 +64,7 @@ int main(int argc, char* argv[]) {
                  number_of_ipc << "ns" << std::endl;
   }
 
-  free(buffer);
+  shmdt(buffer);
+  shmctl(shmid, IPC_RMID, nullptr);
   return 0;
 }

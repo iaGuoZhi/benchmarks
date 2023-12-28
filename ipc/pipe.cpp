@@ -32,19 +32,22 @@ int main(int argc, char* argv[]) {
   if (pid == 0) {
     // child process
     for (int i = 0; i < number_of_ipc; i++) {
-      memset(buffer, i, buffer_size);
+      char ch = 'a' + i % 26;
+      memset(buffer, ch, buffer_size);
       if (write(fds[1], buffer, buffer_size) != buffer_size) {
         std::cout << "child write error" << std::endl;
       }
     }
   } else {
     // parent process
+    char dest[buffer_size];
     gettimeofday(&tv1, &tz);
     for (int i = 0; i < number_of_ipc; i++) {
       if (read(fds[0], buffer, buffer_size) != buffer_size) {
         std::cout << "parent read error" << std::endl;
       }
-      memset(buffer, 0, buffer_size);
+      memcpy(dest, buffer, buffer_size);
+      //std::cout << *dest << std::endl;
     }
     gettimeofday(&tv2, &tz);
 
