@@ -4,7 +4,6 @@ test_file=$(mktemp)
 file_size=$1
 block_size=$2
 
-echo "File: $test_file, file size: $file_size, block size: $block_size"
 fallocate -l "$file_size" "$test_file"
 
 run_random_read_test() {
@@ -20,9 +19,8 @@ run_random_read_test
 run_random_write_test
 
 random_read_iops=$(jq -r '.jobs[0].read.iops' random_read_test_result.json)
-echo "Random read IOPS: $random_read_iops"
 
 random_write_iops=$(jq -r '.jobs[0].write.iops' random_write_test_result.json)
-echo "Random write IOPS: $random_write_iops"
+echo "File: $test_file file size: $file_size block size: $block_size read iops: $random_read_iops write iops: $random_write_iops"
 
 rm "$test_file" random_read_test_result.json random_write_test_result.json
