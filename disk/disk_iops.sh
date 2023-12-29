@@ -1,19 +1,18 @@
 #!/bin/bash
 
 test_file=$(mktemp)
-file_size="1G"
+file_size=$1
+block_size=$2
 
-echo "Creating test file..."
+echo "File: $test_file, file size: $file_size, block size: $block_size"
 fallocate -l "$file_size" "$test_file"
 
 run_random_read_test() {
-  echo "Running random read test..."
-  fio --name=random_read_test --rw=randread --filename="$test_file" --direct=1 --ioengine=sync --bs=4k --size="$file_size" --numjobs=1 --time_based --runtime=10s --output-format=json --output=random_read_test_result.json > /dev/null
+  fio --name=random_read_test --rw=randread --filename="$test_file" --direct=1 --ioengine=sync --bs=$block_size --size="$file_size" --numjobs=1 --time_based --runtime=10s --output-format=json --output=random_read_test_result.json > /dev/null
 }
 
 run_random_write_test() {
-  echo "Running random write test..."
-  fio --name=random_write_test --rw=randwrite --filename="$test_file" --direct=1 --ioengine=sync --bs=4k --size="$file_size" --numjobs=1 --time_based --runtime=10s --output-format=json --output=random_write_test_result.json > /dev/null
+  fio --name=random_write_test --rw=randwrite --filename="$test_file" --direct=1 --ioengine=sync --bs=$block_size --size="$file_size" --numjobs=1 --time_based --runtime=10s --output-format=json --output=random_write_test_result.json > /dev/null
 }
 
 run_random_read_test
@@ -26,8 +25,4 @@ echo "Random read IOPS: $random_read_iops"
 random_write_iops=$(jq -r '.jobs[0].write.iops' random_write_test_result.json)
 echo "Random write IOPS: $random_write_iops"
 
-echo "Cleaning up..."
 rm "$test_file" random_read_test_result.json random_write_test_result.json
-
-echo "Test completed."
-
