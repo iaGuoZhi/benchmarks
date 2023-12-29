@@ -26,7 +26,7 @@ ax2 = plt.subplot(gs[1])
 df = pd.read_csv(csv_filename)
 columns = df.columns[1:]
 for column in columns:
-    ax1.plot(df['buffer_size'], df[column], label=column)
+    ax1.plot(df['buffer_size'].values, df[column].values, label=column)
 
 ax1.legend()
 ax1.set_title(f'{option} cache latency vs size')
