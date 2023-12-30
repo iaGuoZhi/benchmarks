@@ -4,6 +4,10 @@ if ! command -v fio >/dev/null 2>&1; then
   echo "fio havn't been installed. Please install it before running $0"
   exit 1
 fi
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq havn't been installed. Please install it before running $0"
+  exit 1
+fi
 
 function print_usage() {
   RED='\033[0;31m'
@@ -11,7 +15,7 @@ function print_usage() {
   BOLD='\033[1m'
   NONE='\033[0m'
 
-  echo -e "\n${RED}Usage${NONE}: ${BOLD}$0${NONE} [OPTION]"
+  echo -e "\n${RED}Usage${NONE}: ${BOLD}$0${NONE} [FILE_PATH] [OPTION]"
 
   echo -e "\n${RED}OPTIONS${NONE}:
   ${BLUE}throughput${NONE}    test sequential read/write bandwidth
@@ -19,6 +23,7 @@ function print_usage() {
   ${BLUE}iops${NONE}    test random read/write iops
   ${BLUE}latency${NONE}   test read/write latency
   ${BLUE}all${NONE}   test all above target"
+
 }
 
 function calc_duration() {
@@ -46,16 +51,22 @@ function save_info() {
 options=("throughput" "concurrent" "iops" "latency" "all")
 
 if [[ $# -lt 1 ]]; then
+  exit 1
+fi
+file_path=$1
+
+if [[ $# -lt 2 ]]; then
   option="all"
 else
-  if [[ ! "${options[*]}" =~ "$1" ]]; then
+  if [[ ! "${options[*]}" =~ "$2" ]]; then
     print_usage
     exit 1
   else
-    option=$1
+    option=$2
   fi
 fi
 
+echo "FILE_PATH: $file_path"
 echo "OPTION: $option"
 
 # make sure results directory exists
@@ -76,13 +87,13 @@ if [[ $option == "throughput" ||  $option == "all" ]]; then
   start_time=$(date +%s)
   for block_size in ${block_sizes[@]};
   do
-    /bin/bash ./disk_thr.sh $file_size $block_size | awk '{print $8 "," $11 "," $15}' >> $dir/disk_thr.csv
+    /bin/bash ./disk_thr.sh $file_size $block_size $file_path | awk '{print $8 "," $11 "," $15}' >> $dir/disk_thr.csv
   done
   end_time=$(date +%s)
   calc_duration $((end_time - start_time))
   echo "Measurement duration: $duration"
   save_info
-  python3 ./disk_thr.py $dir 
+  python3 ./disk_thr.py $dir
   echo "$option image are saved in $dir/disk_thr.png"
 fi
 
@@ -93,13 +104,13 @@ if [[ $option == "concurrent" ||  $option == "all" ]]; then
   start_time=$(date +%s)
   for block_size in ${block_sizes[@]};
   do
-    /bin/bash ./disk_conc.sh $file_size $block_size | awk '{print $8 "," $11 "," $15}' >> $dir/disk_conc.csv
+    /bin/bash ./disk_conc.sh $file_size $block_size $file_path | awk '{print $8 "," $11 "," $15}' >> $dir/disk_conc.csv
   done
   end_time=$(date +%s)
   calc_duration $((end_time - start_time))
   echo "Measurement duration: $duration"
   save_info
-  python3 ./disk_conc.py $dir 
+  python3 ./disk_conc.py $dir
   echo "$option image are saved in $dir/disk_conc.png"
 fi
 
@@ -110,13 +121,13 @@ if [[ $option == "iops" ||  $option == "all" ]]; then
   start_time=$(date +%s)
   for block_size in ${block_sizes[@]};
   do
-    /bin/bash ./disk_iops.sh $file_size $block_size | awk '{print $8 "," $11 "," $14}' >> $dir/disk_iops.csv
+    /bin/bash ./disk_iops.sh $file_size $block_size $file_path | awk '{print $8 "," $11 "," $14}' >> $dir/disk_iops.csv
   done
   end_time=$(date +%s)
   calc_duration $((end_time - start_time))
   echo "Measurement duration: $duration"
   save_info
-  python3 ./disk_iops.py $dir 
+  python3 ./disk_iops.py $dir
   echo "$option image are saved in $dir/disk_iops.png"
 fi
 
@@ -127,13 +138,12 @@ if [[ $option == "latency" ||  $option == "all" ]]; then
   start_time=$(date +%s)
   for block_size in ${block_sizes[@]};
   do
-    /bin/bash ./disk_lat.sh $file_size $block_size | awk '{print $8 "," $11 "," $15}' >> $dir/disk_lat.csv
+    /bin/bash ./disk_lat.sh $file_size $block_size $file_path | awk '{print $8 "," $11 "," $15}' >> $dir/disk_lat.csv
   done
   end_time=$(date +%s)
   calc_duration $((end_time - start_time))
   echo "Measurement duration: $duration"
   save_info
-  python3 ./disk_lat.py $dir 
+  python3 ./disk_lat.py $dir
   echo "$option image are saved in $dir/disk_lat.png"
 fi
-

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-test_file=$(mktemp)
 file_size=$1
 block_size=$2
+test_file=$3
 
 fallocate -l "$file_size" "$test_file"
 
