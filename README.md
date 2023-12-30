@@ -1,0 +1,16 @@
+## TODO
+
+- [ ] (cpu)
+- [x] (cache)
+- [x] (ram)
+- [x] (disk)
+- [ ] (network)
+- [ ] (gpu)
+- [ ] (time)
+- [ ] (ipc)
+- [ ] (lock)
+- [ ] (mmap)
+- [ ] (malloc)
+- [ ] (memory order)
+- [ ] (context switch)
+- [ ] (virtualization)
