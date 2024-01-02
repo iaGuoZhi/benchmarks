@@ -1,6 +1,7 @@
 ## TODO
 
 - [ ] (cpu)
+- [ ] (tlb)
 - [x] (cache)
 - [x] (ram)
 - [x] (disk)
