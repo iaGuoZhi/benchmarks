@@ -1,0 +1,16 @@
+Command: ./disk.sh all
+Time: 2023-12-30 10:57:56
+Duration:  3 minutes, 26 seconds
+Hostname: guozhi-ipads
+Command: ./disk.sh all
+Time: 2023-12-30 11:01:24
+Duration:  3 minutes, 27 seconds
+Hostname: guozhi-ipads
+Command: ./disk.sh all
+Time: 2023-12-30 11:04:51
+Duration:  3 minutes, 27 seconds
+Hostname: guozhi-ipads
+Command: ./disk.sh all
+Time: 2023-12-30 11:08:18
+Duration:  3 minutes, 26 seconds
+Hostname: guozhi-ipads
