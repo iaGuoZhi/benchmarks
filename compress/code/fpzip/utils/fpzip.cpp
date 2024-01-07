@@ -100,16 +100,16 @@ int main(int argc, char* argv[])
 
   // initialize
   size_t count = (size_t)nx * ny * nz * nf;
-  size_t size = (type == FPZIP_TYPE_FLOAT ? sizeof(float) : sizeof(double));  
+  size_t size = (type == FPZIP_TYPE_FLOAT ? sizeof(float) : sizeof(double));
   size_t inbytes = count * size;
-  size_t bufbytes = 1024 + inbytes;    
+  size_t bufbytes = inbytes * 1.02;
   int success = 1;
   // allocate buffers
   void* data = 0;
   void* data2 = 0;
   void* buffer = malloc(bufbytes);
   FPZ* fpz = fpzip_write_to_buffer(buffer, bufbytes);
-  
+
   if (zip) {
     // allocate memory for uncompressed data
     // size_t count = (size_t)nx * ny * nz * nf;
@@ -128,8 +128,9 @@ int main(int argc, char* argv[])
       fprintf(stderr, "cannot open input file\n");
       return EXIT_FAILURE;
     }
-    if (fread(data, size, count, file) != count) {
-      fprintf(stderr, "cannot read input file\n");
+    int actual_count = fread(data, size, count, file);
+    if (actual_count != count) {
+      fprintf(stderr, "cannot read input file, actual_count=%d\n", actual_count);
       return EXIT_FAILURE;
     }
     fclose(file);
@@ -167,7 +168,7 @@ int main(int argc, char* argv[])
     fpzip_write_close(fpz);
     // fclose(file);
     if (!quiet)
-      fprintf(stderr, "outbytes=%lu ratio=%.2f comp-time=%.3f ms\t", 
+      fprintf(stderr, "outbytes=%lu ratio=%.2f comp-time=%.3f ms\t",
         (unsigned long)outbytes, double(nx) * ny * nz * nf * size / outbytes, elapse.count());
   }
   if(success) {
@@ -191,7 +192,7 @@ int main(int argc, char* argv[])
     ny = fpz->ny;
     nz = fpz->nz;
     nf = fpz->nf;
-    
+
 
     size_t count2 = (size_t)nx * ny * nz * nf;
     // size_t size = (type == FPZIP_TYPE_FLOAT ? sizeof(float) : sizeof(double));
@@ -226,11 +227,11 @@ int main(int argc, char* argv[])
   if (type == FPZIP_TYPE_FLOAT){
     delete[] static_cast<float*>(data);
     delete[] static_cast<float*>(data2);
-  }  
+  }
   else {
     delete[] static_cast<double*>(data);
     delete[] static_cast<double*>(data2);
-  }  
+  }
 
   return 0;
 }

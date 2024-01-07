@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <cstdio>
 #include "rcencoder.h"
 
 // finalize encoder

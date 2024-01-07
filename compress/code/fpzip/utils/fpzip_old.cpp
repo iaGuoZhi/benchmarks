@@ -119,10 +119,15 @@ int main(int argc, char* argv[])
       fprintf(stderr, "cannot open input file\n");
       return EXIT_FAILURE;
     }
-    if (fread(data, size, count, file) != count) {
-      fprintf(stderr, "cannot read input file\n");
+    int actual_count = fread(data, size, count, file);
+    if (actual_count != count) {
+      fprintf(stderr, "cannot read input file, actual_count=%d\n", actual_count);
       return EXIT_FAILURE;
     }
+    //if (fread(data, size, count, file) != count) {
+    //  fprintf(stderr, "cannot read input file\n");
+    //  return EXIT_FAILURE;
+    //}
     fclose(file);
 
     // compress to file
