@@ -35,7 +35,7 @@ for i, col in enumerate(df.columns[1:]):
 
 ax.set_xlabel('work')
 ax.set_ylabel('Compression Ratio')
-ax.set_title('Compression Ratios by work and File')
+ax.set_title('Compression Ratio by Compression algorithm and Dataset')
 ax.set_xticks(index + bar_width)
 ax.set_xticklabels(labels)
 ax.legend()
@@ -54,7 +54,7 @@ for i, col in enumerate(df.columns[1:]):
 
 ax.set_xlabel('work')
 ax.set_ylabel('Compression throughput (MB/s)')
-ax.set_title('Compression throughput by work and File')
+ax.set_title('Compression throughput by Compression algorithm and Dataset')
 ax.set_xticks(index + bar_width)
 ax.set_xticklabels(labels)
 ax.legend()
@@ -73,7 +73,7 @@ for i, col in enumerate(df.columns[1:]):
 
 ax.set_xlabel('work')
 ax.set_ylabel('Decompression throughput (MB/s)')
-ax.set_title('Decompression throughput by work and File')
+ax.set_title('Decompression throughput by Compression algorithm and Dataset')
 ax.set_xticks(index + bar_width)
 ax.set_xticklabels(labels)
 ax.legend()

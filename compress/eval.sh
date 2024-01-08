@@ -120,7 +120,7 @@ for i in "${!works[@]}"; do
   awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
     {array[NR] = $3} \
     END {printf "\n%s", label; for (i=1; i<=NR; i++) \
-    { printf ",%.2f", size[i] * 1000 / 1024 / 1024 / 1024 / strtonum(array[i]) }}'\
+    { printf ",%.2f", size[i] * 1000 / 1024 / 1024 / strtonum(array[i]) }}'\
     $dir/${label}.res >> $dir/compress_throughput.csv
 done
 
@@ -132,11 +132,12 @@ for i in "${!works[@]}"; do
   awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
     {array[NR] = $4} \
     END {printf "\n%s", label; for (i=1; i<=NR; i++) \
-    { printf ",%.2f", size[i] * 1000 / 1024 / 1024 / 1024 / strtonum(array[i]) }}'\
+    { printf ",%.2f", size[i] * 1000 / 1024 / 1024 / strtonum(array[i]) }}'\
     $dir/${label}.res >> $dir/decompress_throughput.csv
 done
 
 # draw
 python3 ./draw.py $dir
+echo "result images are saved in $dir"
 
 rm -rf $out_dir
