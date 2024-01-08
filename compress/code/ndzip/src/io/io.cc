@@ -59,7 +59,8 @@ class stdio_input_stream final : public input_stream {
         } else if (bytes_read == 0) {
             return nullptr;
         } else {
-            throw io_error("Input file size is not a multiple of the chunk size");
+          return nullptr;
+//            throw io_error("Input file size is not a multiple of the chunk size");
         }
     }
 
@@ -162,7 +163,8 @@ class mmap_input_stream final : public input_stream {
         } else if (bytes_read == 0) {
             return nullptr;
         } else {
-            throw io_error("Input file size is not a multiple of the chunk size");
+          return nullptr;
+//            throw io_error("Input file size is not a multiple of the chunk size");
         }
     }
 

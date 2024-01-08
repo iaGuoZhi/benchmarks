@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # make sure compress programs exist
-#works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpc" "./code/SPDP/spdp" "./code/ndzip/build/compress" "./code/ndzip/build/compress" "./code/buff/database/target/release/comp_profiler" "./code/GFC/GFC")
-works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb")
+#works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb" "./code/ndzip/build/compress" "./code/ndzip/build/compress")
+#labels=("fpzip" "pFPC" "SPDP" "ndzip-cpu" "ndzip-gpu")
+works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb" "./code/ndzip/build/compress")
+labels=("fpzip" "pFPC" "SPDP" "ndzip-cpu")
 for work in ${works[@]}; do
   if [ ! -f $work ]; then
     echo "File '$work' does not exist. Please build it by build.sh before running $0"
@@ -11,7 +13,7 @@ for work in ${works[@]}; do
 done
 
 files=("./data/msg_bt_f64" "./data/num_brain_f64" "./data/num_control_f64" "./data/turbulence_f32")
-file_size=(266389432 141840000 159504744 67108864)
+file_size=(207169817 121995069 153779639 67108864)
 for file in ${files[@]}; do
   if [ ! -f $file ]; then
     echo "File '$file' does not exist. Please download it by download_dataset.sh before running $0"
@@ -57,7 +59,7 @@ awk '{ print $1 " " $3 " " $8}' $dir/pfpcb_comp.log > $dir/pfpcb_comp.res
 awk '{ print $6 }' $dir/pfpcb_decomp.log > $dir/pfpcb_decomp.res
 paste -d ' ' $dir/pfpcb_comp.res $dir/pfpcb_decomp.res > $dir/pfpcb.res
 
-## test SPDP
+# test SPDP
 work=./code/SPDP/spdpb
 SIZE=1048576
 for i in "${!files[@]}"; do
@@ -70,6 +72,27 @@ awk '{ print $1 " " $3 " " $8}' $dir/spdpb_comp.log > $dir/spdpb_comp.res
 awk '{ print $6 }' $dir/spdpb_decomp.log > $dir/spdpb_decomp.res
 paste -d ' ' $dir/spdpb_comp.res $dir/spdpb_decomp.res > $dir/spdpb.res
 
+# test ndzip-cpu
+work=./code/ndzip/build/compress
+for i in "${!files[@]}"; do
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/ndzip_cpu_comp.log"
+  { $work -i ${files[i]} -o $out_dir/compress.ndzip -t ${data_types[i]} -n ${shapes[i]} ;} 2>> "$dir/ndzip_cpu_comp.log"
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/ndzip_cpu_decomp.log"
+  { $work -d -i $out_dir/compress.ndzip -o $out_dir/compress.ndzip.out -t ${data_types[i]} -n ${shapes[i]} ;} 2>> "$dir/ndzip_cpu_decomp.log"
+done
+sed 's/,/ /' $dir/ndzip_cpu_comp.log | awk '{ print $1 " " $12 " " $16}' > $dir/ndzip_cpu_comp.res
+sed 's/,/ /' $dir/ndzip_cpu_decomp.log | awk '{ print $6}' > $dir/ndzip_cpu_decomp.res
+paste -d ' ' $dir/ndzip_cpu_comp.res $dir/ndzip_cpu_decomp.res > $dir/ndzip_cpu.res
+
+# test ndzip-gpu
+#work=./code/ndzip/build/compress
+#for i in "${!files[@]}"; do
+#  echo ${files[i]} | tr '\n' ' ' >> "$dir/ndzip_gpu_comp.log"
+#  { $work -e cuda -i ${files[i]} -o $out_dir/compress.ndzip -t ${data_types[i]} -n ${shapes[i]} ;} 2>> "$dir/ndzip_gpu_comp.log"
+#  echo ${files[i]} | tr '\n' ' ' >> "$dir/ndzip_gpu_decomp.log"
+#  { $work -e cuda -d -i $out_dir/compress.ndzip -o $out_dir/compress.ndzip.out -t ${data_types[i]} -n ${shapes[i]} ;} 2>> "$dir/ndzip_gpu_decomp.log"
+#done
+#
 # prepare csv header
 tmp_file=$(mktemp)
 for i in "${!files[@]}"; do
@@ -81,8 +104,9 @@ done
 
 # compress ratio
 cp $tmp_file $dir/compress_ratio.csv
-for work in ${works[@]}; do
-  label=$(basename $work)
+for i in "${!works[@]}"; do
+  work=${works[i]}
+  label=${labels[i]}
   awk -v label="$label" '{array[NR] = $2} \
   END {printf "\n%s", label; for (i=1; i<=NR; i++) { printf ",%s", array[i] }}' \
   $dir/${label}.res >> $dir/compress_ratio.csv
@@ -90,8 +114,9 @@ done
 
 # compress throughput
 cp $tmp_file $dir/compress_throughput.csv
-for work in ${works[@]}; do
-  label=$(basename $work)
+for i in "${!works[@]}"; do
+  work=${works[i]}
+  label=${labels[i]}
   awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
     {array[NR] = $3} \
     END {printf "\n%s", label; for (i=1; i<=NR; i++) \
@@ -101,8 +126,9 @@ done
 
 # decompress throughput
 cp $tmp_file $dir/decompress_throughput.csv
-for work in ${works[@]}; do
-  label=$(basename $work)
+for i in "${!works[@]}"; do
+  work=${works[i]}
+  label=${labels[i]}
   awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
     {array[NR] = $4} \
     END {printf "\n%s", label; for (i=1; i<=NR; i++) \
