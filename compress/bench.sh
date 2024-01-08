@@ -11,6 +11,7 @@ for work in ${works[@]}; do
 done
 
 files=("./data/msg_bt_f64" "./data/num_brain_f64" "./data/num_control_f64" "./data/turbulence_f32")
+file_size=(266389432 141840000 159504744 67108864)
 for file in ${files[@]}; do
   if [ ! -f $file ]; then
     echo "File '$file' does not exist. Please download it by download_dataset.sh before running $0"
@@ -41,34 +42,75 @@ for i in "${!files[@]}"; do
   echo ${files[i]} | tr '\n' ' ' >> "$dir/fpzip.log"
   { $work -i ${files[i]} -t ${data_types[i]} -${dimensions[i]} ${shapes[i]} ;} 2>> "$dir/fpzip.log"
 done
-awk '{print $1 $5 $7 $10}' $dir/fpzip.log > $dir/fpzip.res
-
-## compress ratio
-awk '{array[NR] = $5} END {print "fpzip"; for (i=1; i<=NR; i++) print array[i]}' >> $dir/compress_ratio.csv
-## compress time
-awk '{array[NR] = $7} END {print "fpzip"; for (i=1; i<=NR; i++) print array[i]}' >> $dir/compress_time.csv
-## decompress time
-awk '{array[NR] = $10} END {print "fpzip"; for (i=1; i<=NR; i++) print array[i]}' >> $dir/decompress_time.csv
-
+sed 's/\=/\ /g' $dir/fpzip.log | awk '{print $1 " " $5 " " $7 " " $10}' > $dir/fpzip.res
 
 # test pFPC
 work=./code/pFPC/pfpcb
 SIZE=1048576
 for i in "${!files[@]}"; do
-  echo ${files[i]} | tr '\n' ' ' >> "$dir/pfpc_comp.log"
- 	{ $work 20 8 2048 $SIZE < ${files[i]}  > $out_dir/compress.pfpc ;} 2>> "$dir/pfpc_comp.log"
-  echo ${files[i]} | tr '\n' ' ' >> "$dir/pfpc_decomp.log"
- 	{ $work $SIZE < $out_dir/compress.pfpc  > $out_dir/compress.pfpcout ;} 2>> "$dir/pfpc_decomp.log"
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/pfpcb_comp.log"
+ 	{ $work 20 8 2048 $SIZE < ${files[i]}  > $out_dir/compress.pfpcb ;} 2>> "$dir/pfpcb_comp.log"
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/pfpcb_decomp.log"
+ 	{ $work $SIZE < $out_dir/compress.pfpcb  > $out_dir/compress.pfpcbout ;} 2>> "$dir/pfpcb_decomp.log"
 done
+awk '{ print $1 " " $3 " " $8}' $dir/pfpcb_comp.log > $dir/pfpcb_comp.res
+awk '{ print $6 }' $dir/pfpcb_decomp.log > $dir/pfpcb_decomp.res
+paste -d ' ' $dir/pfpcb_comp.res $dir/pfpcb_decomp.res > $dir/pfpcb.res
 
-# test SPDP
+## test SPDP
 work=./code/SPDP/spdpb
 SIZE=1048576
 for i in "${!files[@]}"; do
-  echo ${files[i]} | tr '\n' ' ' >> "$dir/spdp_comp.log"
-	{ $work 10 $SIZE < ${files[i]} > $out_dir/compress.spdp ;} 2>> "$dir/spdp_comp.log"
-  echo ${files[i]} | tr '\n' ' ' >> "$dir/spdp_decomp.log"
-  { $work $SIZE < $out_dir/compress.spdp  > $out_dir/compress.spdpout ;} 2>> "$dir/spdp_decomp.log"
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/spdpb_comp.log"
+	{ $work 10 $SIZE < ${files[i]} > $out_dir/compress.spdpb ;} 2>> "$dir/spdpb_comp.log"
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/spdpb_decomp.log"
+  { $work $SIZE < $out_dir/compress.spdpb  > $out_dir/compress.spdpbout ;} 2>> "$dir/spdpb_decomp.log"
 done
+awk '{ print $1 " " $3 " " $8}' $dir/spdpb_comp.log > $dir/spdpb_comp.res
+awk '{ print $6 }' $dir/spdpb_decomp.log > $dir/spdpb_decomp.res
+paste -d ' ' $dir/spdpb_comp.res $dir/spdpb_decomp.res > $dir/spdpb.res
+
+# prepare csv header
+tmp_file=$(mktemp)
+for i in "${!files[@]}"; do
+  if [ $i -eq 0 ]; then
+    printf "work" > $tmp_file
+  fi
+  printf ",%s" $(basename ${files[i]}) >> $tmp_file
+done
+
+# compress ratio
+cp $tmp_file $dir/compress_ratio.csv
+for work in ${works[@]}; do
+  label=$(basename $work)
+  awk -v label="$label" '{array[NR] = $2} \
+  END {printf "\n%s", label; for (i=1; i<=NR; i++) { printf ",%s", array[i] }}' \
+  $dir/${label}.res >> $dir/compress_ratio.csv
+done
+
+# compress throughput
+cp $tmp_file $dir/compress_throughput.csv
+for work in ${works[@]}; do
+  label=$(basename $work)
+  awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
+    {array[NR] = $3} \
+    END {printf "\n%s", label; for (i=1; i<=NR; i++) \
+    { printf ",%.2f", size[i] * 1000 / 1024 / 1024 / 1024 / strtonum(array[i]) }}'\
+    $dir/${label}.res >> $dir/compress_throughput.csv
+done
+
+# decompress throughput
+cp $tmp_file $dir/decompress_throughput.csv
+for work in ${works[@]}; do
+  label=$(basename $work)
+  awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
+    {array[NR] = $4} \
+    END {printf "\n%s", label; for (i=1; i<=NR; i++) \
+    { printf ",%.2f", size[i] * 1000 / 1024 / 1024 / 1024 / strtonum(array[i]) }}'\
+    $dir/${label}.res >> $dir/decompress_throughput.csv
+done
+
+# draw
+python3 ./draw.py $dir
 
 rm -rf $out_dir
