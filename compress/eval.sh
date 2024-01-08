@@ -4,7 +4,7 @@
 #works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb" "./code/ndzip/build/compress" "./code/ndzip/build/compress")
 #labels=("fpzip" "pFPC" "SPDP" "ndzip-cpu" "ndzip-gpu")
 works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb" "./code/ndzip/build/compress")
-labels=("fpzip" "pFPC" "SPDP" "ndzip-cpu")
+labels=("fpzip" "pfpcb" "spdpb" "ndzip_cpu")
 for work in ${works[@]}; do
   if [ ! -f $work ]; then
     echo "File '$work' does not exist. Please build it by build.sh before running $0"
@@ -80,8 +80,8 @@ for i in "${!files[@]}"; do
   echo ${files[i]} | tr '\n' ' ' >> "$dir/ndzip_cpu_decomp.log"
   { $work -d -i $out_dir/compress.ndzip -o $out_dir/compress.ndzip.out -t ${data_types[i]} -n ${shapes[i]} ;} 2>> "$dir/ndzip_cpu_decomp.log"
 done
-sed 's/,/ /' $dir/ndzip_cpu_comp.log | awk '{ print $1 " " $12 " " $16}' > $dir/ndzip_cpu_comp.res
-sed 's/,/ /' $dir/ndzip_cpu_decomp.log | awk '{ print $6}' > $dir/ndzip_cpu_decomp.res
+sed 's/,/ /g' $dir/ndzip_cpu_comp.log | awk '{ print $1 " " $12 " " $16}' > $dir/ndzip_cpu_comp.res
+sed 's/,/ /g' $dir/ndzip_cpu_decomp.log | awk '{ print $6}' > $dir/ndzip_cpu_decomp.res
 paste -d ' ' $dir/ndzip_cpu_comp.res $dir/ndzip_cpu_decomp.res > $dir/ndzip_cpu.res
 
 # test ndzip-gpu
