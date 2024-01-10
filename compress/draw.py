@@ -28,12 +28,12 @@ fig, ax = plt.subplots()
 bar_width = 0.2
 index = df.index
 opacity = 0.8
-labels = df['work']
+labels = df['compress algo']
 
 for i, col in enumerate(df.columns[1:]):
     ax.bar(index + i * bar_width, df[col], bar_width, alpha=opacity, label=col)
 
-ax.set_xlabel('work')
+ax.set_xlabel('compress algo')
 ax.set_ylabel('Compression Ratio')
 ax.set_title('Compression Ratio by Compression algorithm and Dataset')
 ax.set_xticks(index + bar_width)
@@ -47,12 +47,12 @@ fig, ax = plt.subplots()
 bar_width = 0.2
 index = df.index
 opacity = 0.8
-labels = df['work']
+labels = df['compress algo']
 
 for i, col in enumerate(df.columns[1:]):
     ax.bar(index + i * bar_width, df[col], bar_width, alpha=opacity, label=col)
 
-ax.set_xlabel('work')
+ax.set_xlabel('compress algo')
 ax.set_ylabel('Compression throughput (MB/s)')
 ax.set_title('Compression throughput by Compression algorithm and Dataset')
 ax.set_xticks(index + bar_width)
@@ -66,12 +66,12 @@ fig, ax = plt.subplots()
 bar_width = 0.2
 index = df.index
 opacity = 0.8
-labels = df['work']
+labels = df['compress algo']
 
 for i, col in enumerate(df.columns[1:]):
     ax.bar(index + i * bar_width, df[col], bar_width, alpha=opacity, label=col)
 
-ax.set_xlabel('work')
+ax.set_xlabel('compress algo')
 ax.set_ylabel('Decompression throughput (MB/s)')
 ax.set_title('Decompression throughput by Compression algorithm and Dataset')
 ax.set_xticks(index + bar_width)

@@ -3,8 +3,8 @@
 # make sure compress programs exist
 #works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb" "./code/ndzip/build/compress" "./code/ndzip/build/compress")
 #labels=("fpzip" "pFPC" "SPDP" "ndzip-cpu" "ndzip-gpu")
-works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb" "./code/ndzip/build/compress")
-labels=("fpzip" "pfpcb" "spdpb" "ndzip_cpu")
+works=("./code/fpzip/build/bin/fpzip" "./code/pFPC/pfpcb" "./code/SPDP/spdpb" "./code/ndzip/build/compress" "./code/influxdb/tsdb/engine/tsm1/compress_test.go" "./code/influxdb/tsdb/engine/tsm1/compress_test.go")
+labels=("fpzip" "pfpcb" "spdpb" "ndzip_cpu" "gorilla" "chimp")
 for work in ${works[@]}; do
   if [ ! -f $work ]; then
     echo "File '$work' does not exist. Please build it by build.sh before running $0"
@@ -12,8 +12,10 @@ for work in ${works[@]}; do
   fi
 done
 
-files=("./data/msg_bt_f64" "./data/num_brain_f64" "./data/num_control_f64" "./data/turbulence_f32")
-file_size=(207169817 121995069 153779639 67108864)
+#files=("./data/msg_bt_f64" "./data/num_brain_f64" "./data/num_control_f64" "./data/turbulence_f32")
+#file_size=(207169817 121995069 153779639 67108864)
+files=("./data/msg_bt_f64" "./data/num_brain_f64")
+file_size=(207169817 121995069)
 for file in ${files[@]}; do
   if [ ! -f $file ]; then
     echo "File '$file' does not exist. Please download it by download_dataset.sh before running $0"
@@ -93,20 +95,44 @@ paste -d ' ' $dir/ndzip_cpu_comp.res $dir/ndzip_cpu_decomp.res > $dir/ndzip_cpu.
 #  { $work -e cuda -d -i $out_dir/compress.ndzip -o $out_dir/compress.ndzip.out -t ${data_types[i]} -n ${shapes[i]} ;} 2>> "$dir/ndzip_gpu_decomp.log"
 #done
 #
+#
+
+# test gorilla
+for i in "${!files[@]}"; do
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/gorilla.log"
+  cp ${files[i]} code/influxdb/datasets/basel-cr-and-thru
+  output_path=$(realpath $dir/gorilla.log)
+  cd code/influxdb
+  git checkout gorilla > /dev/null
+  go test -test.timeout 0 -run TestCompress_Basel -v github.com/influxdata/influxdb/v2/tsdb/engine/tsm1 | grep "Compression time" >> $output_path
+  cd ../..
+done
+awk '{ print $5 " " $8 " " $11}' $dir/gorilla.log > $dir/gorilla.res
+
+# test chimp
+for i in "${!files[@]}"; do
+  echo ${files[i]} | tr '\n' ' ' >> "$dir/chimp.log"
+  cp ${files[i]} code/influxdb/datasets/basel-cr-and-thru
+  output_path=$(realpath $dir/chimp.log)
+  cd code/influxdb
+  git checkout chimp > /dev/null
+  go test -test.timeout 0 -run TestCompress_Basel -v github.com/influxdata/influxdb/v2/tsdb/engine/tsm1 | grep "Compression time" >> $output_path
+  cd ../..
+done
+awk '{ print $5 " " $8 " " $11}' $dir/chimp.log > $dir/chimp.res
+
 # prepare csv header
 tmp_file=$(mktemp)
 for i in "${!files[@]}"; do
   if [ $i -eq 0 ]; then
-    printf "work" > $tmp_file
+    printf "compress algo" > $tmp_file
   fi
   printf ",%s" $(basename ${files[i]}) >> $tmp_file
 done
 
 # compress ratio
 cp $tmp_file $dir/compress_ratio.csv
-for i in "${!works[@]}"; do
-  work=${works[i]}
-  label=${labels[i]}
+for label in "${labels[@]}"; do
   awk -v label="$label" '{array[NR] = $2} \
   END {printf "\n%s", label; for (i=1; i<=NR; i++) { printf ",%s", array[i] }}' \
   $dir/${label}.res >> $dir/compress_ratio.csv
@@ -114,9 +140,7 @@ done
 
 # compress throughput
 cp $tmp_file $dir/compress_throughput.csv
-for i in "${!works[@]}"; do
-  work=${works[i]}
-  label=${labels[i]}
+for label in "${labels[@]}"; do
   awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
     {array[NR] = $3} \
     END {printf "\n%s", label; for (i=1; i<=NR; i++) \
@@ -126,9 +150,7 @@ done
 
 # decompress throughput
 cp $tmp_file $dir/decompress_throughput.csv
-for i in "${!works[@]}"; do
-  work=${works[i]}
-  label=${labels[i]}
+for label in "${labels[@]}"; do
   awk -v label="$label" -v file_size="${file_size[*]}" 'BEGIN {split(file_size, size, " ")} \
     {array[NR] = $4} \
     END {printf "\n%s", label; for (i=1; i<=NR; i++) \

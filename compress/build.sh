@@ -1,7 +1,7 @@
 cd ./code/fpzip
 
 # Build fpzip
-if [! -d "build"]; then
+if [ ! -d "build" ]; then
     mkdir build
 fi
 cd build
@@ -27,7 +27,7 @@ whichnvcc=/opt/cuda/bin/nvcc
 cmake -B build -DCMAKE_CUDA_ARCHITECTURES=75 \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DZIP_WITH_MT=YES \
-	-DNDZIP_WITH_CUDA=YES \
+	-DNDZIP_WITH_CUDA=NO \
 	-DCMAKE_CXX_FLAGS="-march=native" \
 	-DCMAKE_C_COMPILER=$whichgcc \
 	-DCMAKE_CXX_COMPILER=$whichgpp \
@@ -35,3 +35,10 @@ cmake -B build -DCMAKE_CUDA_ARCHITECTURES=75 \
 	-DBoost_INCLUDE_DIR=$boostdir/include \
 	-DBoost_LIBRARY_DIRS=$boostdir/lib
 cmake --build build -j
+
+# Build influxdb
+cd ../influxdb
+git fetch origin gorilla:gorilla
+git fetch origin chimp:chimp
+rustup default 1.53.0
+make
