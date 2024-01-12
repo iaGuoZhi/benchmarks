@@ -12,10 +12,8 @@ for work in ${works[@]}; do
   fi
 done
 
-#files=("./data/msg_bt_f64" "./data/num_brain_f64" "./data/num_control_f64" "./data/turbulence_f32")
-#file_size=(207169817 121995069 153779639 67108864)
-files=("./data/msg_bt_f64" "./data/num_brain_f64")
-file_size=(207169817 121995069)
+files=("./data/msg_bt_f64" "./data/num_brain_f64" "./data/num_control_f64" "./data/turbulence_f32")
+file_size=(207169817 121995069 153779639 67108864)
 for file in ${files[@]}; do
   if [ ! -f $file ]; then
     echo "File '$file' does not exist. Please download it by download_dataset.sh before running $0"
@@ -103,11 +101,11 @@ for i in "${!files[@]}"; do
   cp ${files[i]} code/influxdb/datasets/basel-cr-and-thru
   output_path=$(realpath $dir/gorilla.log)
   cd code/influxdb
-  git checkout gorilla > /dev/null
+  git checkout gorilla 2> /dev/null
   go test -test.timeout 0 -run TestCompress_Basel -v github.com/influxdata/influxdb/v2/tsdb/engine/tsm1 | grep "Compression time" >> $output_path
   cd ../..
 done
-awk '{ print $5 " " $8 " " $11}' $dir/gorilla.log > $dir/gorilla.res
+awk '{ print $1 " " $5 " " $8 " " $11}' $dir/gorilla.log > $dir/gorilla.res
 
 # test chimp
 for i in "${!files[@]}"; do
@@ -115,11 +113,11 @@ for i in "${!files[@]}"; do
   cp ${files[i]} code/influxdb/datasets/basel-cr-and-thru
   output_path=$(realpath $dir/chimp.log)
   cd code/influxdb
-  git checkout chimp > /dev/null
+  git checkout chimp 2> /dev/null
   go test -test.timeout 0 -run TestCompress_Basel -v github.com/influxdata/influxdb/v2/tsdb/engine/tsm1 | grep "Compression time" >> $output_path
   cd ../..
 done
-awk '{ print $5 " " $8 " " $11}' $dir/chimp.log > $dir/chimp.res
+awk '{ print $1 " " $5 " " $8 " " $11}' $dir/chimp.log > $dir/chimp.res
 
 # prepare csv header
 tmp_file=$(mktemp)
