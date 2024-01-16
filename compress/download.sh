@@ -1,11 +1,11 @@
-if [ ! -d "./data" ]; then
-  mkdir "./data"
+if [ ! -d "./data-old" ]; then
+  mkdir "./data-old"
 fi
 
-## scientific simulation dataset
-wget http://www.cs.txstate.edu/~burtscher/research/datasets/FPdouble/msg_bt.trace.fpc -O ./data/msg_bt_f64
-wget http://www.cs.txstate.edu/~burtscher/research/datasets/FPdouble/num_brain.trace.fpc -O ./data/num_brain_f64
-wget http://www.cs.txstate.edu/~burtscher/research/datasets/FPdouble/num_control.trace.fpc -O ./data/num_control_f64
-wget https://klacansky.com/open-scivis-datasets/tacc_turbulence/tacc_turbulence_256x256x256_float32.raw -O ./data/turbulence_f32
+## scientific simulation data-oldset
+wget http://www.cs.txstate.edu/~burtscher/research/data-oldsets/FPdouble/msg_bt.trace.fpc -O ./data-old/msg_bt_f64
+wget http://www.cs.txstate.edu/~burtscher/research/data-oldsets/FPdouble/num_brain.trace.fpc -O ./data-old/num_brain_f64
+wget http://www.cs.txstate.edu/~burtscher/research/data-oldsets/FPdouble/num_control.trace.fpc -O ./data-old/num_control_f64
+wget https://klacansky.com/open-scivis-data-oldsets/tacc_turbulence/tacc_turbulence_256x256x256_float32.raw -O ./data-old/turbulence_f32
 
-## time series dataset
+## time series data-oldset
