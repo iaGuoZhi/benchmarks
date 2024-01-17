@@ -1,0 +1,4 @@
+*.tmp
+compression_test
+compression_test.o
+lib
