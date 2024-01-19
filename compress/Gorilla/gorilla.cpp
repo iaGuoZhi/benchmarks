@@ -1,0 +1,102 @@
+#include "gorilla.h"
+#include "BitStream/BitReader.h"
+#include "BitStream/BitWriter.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+int gorilla_encode(double *in, size_t len, uint8_t **out, double error) {
+  assert(len > 0);
+
+  int buffer_size = SIZE_IN_BIT((1 + 1 + 5 + 6 + 64) * len) * 4;
+  *out = (uint8_t *)malloc(2 + buffer_size);
+  *(uint16_t *)*out = len;
+  *(double *)(*out + 2) = in[0];
+  BitWriter writer;
+  initBitWriter(&writer, (uint32_t *)(*out + 2 + 8), buffer_size / 4 - 2);
+
+  uint64_t prevLeading = -1L;
+  uint64_t prevTrailing = 0;
+  uint64_t leading, trailing;
+  uint64_t mask;
+  double sum;
+
+  uint64_t *data = (uint64_t *)in;
+  for (int i = 1; i < len; i++) {
+    uint64_t vDelta = data[i] ^ data[i - 1];
+    if (vDelta == 0) {
+      write(&writer, 0, 1);
+      continue;
+    }
+
+    leading = __builtin_clzl(vDelta);
+    trailing = __builtin_ctzl(vDelta);
+
+    leading = (leading >= 32) ? 31 : leading;
+    uint64_t l;
+
+    if (prevLeading != -1L && leading >= prevLeading &&
+        trailing >= prevTrailing) {
+      write(&writer, 2, 2);
+      l = 64 - prevLeading - prevTrailing;
+    } else {
+      prevLeading = leading;
+      prevTrailing = trailing;
+      l = 64 - leading - trailing;
+
+      write(&writer, 3, 2);
+      write(&writer, leading, 5);
+      write(&writer, l - 1, 6);
+    }
+
+    if (l <= 32) {
+      write(&writer, vDelta >> prevTrailing, l);
+    } else {
+      write(&writer, vDelta >> 32, 32 - prevLeading);
+      write(&writer, vDelta >> prevTrailing, 32 - prevTrailing);
+    }
+  }
+
+  return flush(&writer) * 4 + 2 + 8;
+}
+
+uint64_t read_delta(BitReader *reader, uint64_t leading, uint64_t meaningful) {
+  uint64_t trailing = 64 - leading - meaningful;
+  uint64_t delta = readLong(reader, meaningful);
+  return delta << trailing;
+}
+
+int gorilla_decode(uint8_t *in, size_t len, double *out, double error) {
+  int data_len = *(uint16_t *)in;
+  out[0] = *(double *)(in + 2);
+  BitReader reader;
+  assert((len - 10) % 4 == 0);
+  initBitReader(&reader, (uint32_t *)(in + 2 + 8), (len - 10) / 4);
+
+  uint64_t *data = (uint64_t *)out;
+  uint64_t leading, meaningful, delta;
+  for (int i = 1; i < data_len; i++) {
+    switch (peek(&reader, 2)) {
+    case 0:
+    case 1:
+      forward(&reader, 1);
+      data[i] = data[i - 1];
+      break;
+    case 2:
+      forward(&reader, 2);
+      delta = read_delta(&reader, leading, meaningful);
+      data[i] = data[i - 1] ^ delta;
+      break;
+    case 3:
+      forward(&reader, 2);
+      leading = read(&reader, 5);
+      meaningful = read(&reader, 6) + 1;
+      delta = read_delta(&reader, leading, meaningful);
+      data[i] = data[i - 1] ^ delta;
+      break;
+    default:
+      break;
+    }
+  }
+  return data_len;
+}
