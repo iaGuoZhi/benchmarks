@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <cmath>
-#include <stdio.h>
 
 #include "defs.h"
 

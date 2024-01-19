@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <cstdint>
 #include <math.h>
-#include <iostream>
 
 #include "BitStream/BitReader.h"
 #include "BitStream/BitWriter.h"
@@ -73,8 +72,7 @@ private:
   void next() {
     if (first) {
       first = false;
-      int trailingZeros = peek(&reader, 7);
-      forward(&reader, 7);
+      int trailingZeros = read(&reader, 7);
       if (trailingZeros < 64) {
         storedVal.i = ((readLong(&reader, 63 - trailingZeros) << 1) + 1)
                       << trailingZeros;
@@ -90,12 +88,10 @@ private:
     long value;
     int centerBits;
     uint32_t leadAndCenter;
-    int flag = peek(&reader, 2);
-    forward(&reader, 2);
+    int flag = read(&reader, 2);
     switch (flag) {
     case 3:
-      leadAndCenter = peek(&reader, 9);
-      forward(&reader, 9);
+      leadAndCenter = read(&reader, 9);
       storedLeadingZeros = leadingRepresentation[leadAndCenter >> 6];
       centerBits = leadAndCenter & 0x3f;
       if (centerBits == 0) {
@@ -108,8 +104,7 @@ private:
       storedVal.i = value;
       break;
     case 2:
-      leadAndCenter = peek(&reader, 7);
-      forward(&reader, 7);
+      leadAndCenter = read(&reader, 7);
       storedLeadingZeros = leadingRepresentation[leadAndCenter >> 4];
       centerBits = leadAndCenter & 0xf;
       if (centerBits == 0) {
@@ -164,9 +159,7 @@ protected:
   double xorDecompress() override { return xorDecompressor.readValue(); }
 
   int readInt(int len) override {
-    int res = peek(xorDecompressor.getReader(), len);
-    forward(xorDecompressor.getReader(), len);
-    return res;
+    return read(xorDecompressor.getReader(), len);
   }
 
   int getLength() override { return xorDecompressor.length; }

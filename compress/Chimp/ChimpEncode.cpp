@@ -18,15 +18,6 @@ static const uint16_t leadingRnd[] = {
     24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
     24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24};
 
-static inline void write_long(BitWriter *writer, int64_t data, size_t len) {
-  if (len <= 32) {
-    write(writer, data, len);
-  } else {
-    write(writer, data >> 32, len - 32);
-    write(writer, data, 32);
-  }
-}
-
 int chimp_encode(double *in, size_t len, uint8_t **out, double error) {
   assert(len > 0);
 
@@ -50,17 +41,14 @@ int chimp_encode(double *in, size_t len, uint8_t **out, double error) {
   int32_t setLsb = (1 << (threshold + 1)) - 1;
   int32_t *indices = (int32_t *)calloc(sizeof(int32_t), (1 << (threshold + 1)));
   int64_t *storedValues = (int64_t *)calloc(sizeof(int64_t), PREVIOUS_VALUES);
-  int32_t flagZeroSize = previousValuesLog2 + 2;
-  int32_t flagOneSize = previousValuesLog2 + 11;
+  int32_t flagZeroSize = 1 + 1 + previousValuesLog2;
+  int32_t flagOneSize = 1 + 1 + previousValuesLog2 + 3 + 6;
 
   storedValues[current] = data[0];
   indices[((int)in[0]) & setLsb] = index;
   size += 64;
 
   for (int i = 1; i < len; i++) {
-    // if (i == 417) {
-    //         asm("nop");
-    // }
     int32_t key = (int)data[i] & setLsb;
     int64_t delta;
     int32_t previousIndex;
@@ -81,6 +69,7 @@ int chimp_encode(double *in, size_t len, uint8_t **out, double error) {
     }
 
     if (delta == 0) {
+      // 0_0_previousIndex
       write(&writer, previousIndex, flagZeroSize);
       size += flagZeroSize;
       storedLeadingZeros = 65;
@@ -89,24 +78,27 @@ int chimp_encode(double *in, size_t len, uint8_t **out, double error) {
 
       if (trailingZeros > threshold) {
         int32_t significantBits = 64 - leadingZeros - trailingZeros;
+        // 0_1_previousIndex_leadingZeros_significantBits
         write(&writer,
               ((previousValues + previousIndex) << 9) |
                   (leadingRep[leadingZeros] << 6) | significantBits,
               flagOneSize);
 
-        write_long(&writer, delta >> trailingZeros, significantBits);
+        writeLong(&writer, delta >> trailingZeros, significantBits);
         size += significantBits + flagOneSize;
         storedLeadingZeros = 65;
       } else if (leadingZeros == storedLeadingZeros) {
+        // 10_delta
         write(&writer, 2, 2);
         int32_t significantBits = 64 - leadingZeros;
-        write_long(&writer, delta, significantBits);
+        writeLong(&writer, delta, significantBits);
         size += 2 + significantBits;
       } else {
+        // 11_leadingZeros_delta
         storedLeadingZeros = leadingZeros;
         int significantBits = 64 - leadingZeros;
         write(&writer, (0x3 << 3) | leadingRep[leadingZeros], 5);
-        write_long(&writer, delta, significantBits);
+        writeLong(&writer, delta, significantBits);
         size += 5 + significantBits;
       }
     }

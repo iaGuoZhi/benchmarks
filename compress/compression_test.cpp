@@ -59,7 +59,7 @@ int compressor_list[] = {0, 1, 2, EOL};
 // List of datasets to be evaluated
 int dataset_list[] = {0, 1, 2, 3, EOL};
 // List of slice lengths to be evaluated
-int bsize_list[] = {5, 1000, EOL};
+int bsize_list[] = {1000, 2000, EOL};
 
 ///////////////////////// Setting End ////////////////////////////
 
@@ -186,8 +186,8 @@ void draw_progress(int now, int total, int len) {
 }
 
 int test_dataset(int ds, int chunk_size) {
-  printf("**************************************\n");
-  printf("      Testing on %s(%.8lf)\n", datasets[ds].name, datasets[ds].error);
+  printf("**************************************");
+  printf("      Testing on %s(%.8lf)\t", datasets[ds].name, datasets[ds].error);
   printf("**************************************\n");
   fflush(stdout);
 
@@ -212,13 +212,13 @@ int test_dataset(int ds, int chunk_size) {
 }
 
 void report(int c) {
-  printf("========= %s ==========\n", compressors[c].name);
-  printf("Compression ratio: %lf\n",
+  printf("========= %s ==========\t", compressors[c].name);
+  printf("Compression ratio: %lf\t",
          (double)compressors[c].perf.ori_size / compressors[c].perf.cmp_size);
-  printf("Compression speed: %lf MB/s\n",
+  printf("Compression speed: %lf MB/s\t",
          (double)compressors[c].perf.ori_size / 1024 / 1024 /
              ((double)compressors[c].perf.cmp_time / CLOCKS_PER_SEC));
-  printf("Decompression speed: %lf MB/s\n",
+  printf("Decompression speed: %lf MB/s\t",
          (double)compressors[c].perf.ori_size / 1024 / 1024 /
              ((double)compressors[c].perf.dec_time / CLOCKS_PER_SEC));
   printf("\n");

@@ -8,21 +8,6 @@
 
 static const int16_t leadingRep[] = {0, 8, 12, 16, 18, 20, 22, 24};
 
-uint64_t read_long(BitReader *reader, size_t len) {
-  uint64_t res;
-  if (len > 32) {
-    res = peek(reader, 32);
-    forward(reader, 32);
-    res <<= len - 32;
-    res |= peek(reader, len - 32);
-    forward(reader, len - 32);
-  } else {
-    res = peek(reader, len);
-    forward(reader, len);
-  }
-  return res;
-}
-
 int chimp_decode(uint8_t *in, size_t len, double *out, double error) {
   assert((len - 10) % 4 == 0);
 
@@ -44,27 +29,24 @@ int chimp_decode(uint8_t *in, size_t len, double *out, double error) {
   storedValues[0] = data[0];
 
   for (int i = 1; i < data_len; i++) {
-    int32_t flag = peek(&reader, 2);
+    int32_t flag = read(&reader, 2);
     uint32_t tmp, fill, index, significantBits;
-    forward(&reader, 2);
     switch (flag) {
     case 3:
-      tmp = peek(&reader, 3);
-      forward(&reader, 3);
+      tmp = read(&reader, 3);
       storedLeadingZeros = leadingRep[tmp];
-      delta = read_long(&reader, 64 - storedLeadingZeros);
+      delta = readLong(&reader, 64 - storedLeadingZeros);
       data[i] = data[i - 1] ^ delta;
       storedValues[i % previousValues] = data[i];
       break;
     case 2:
-      delta = read_long(&reader, 64 - storedLeadingZeros);
+      delta = readLong(&reader, 64 - storedLeadingZeros);
       data[i] = data[i - 1] ^ delta;
       storedValues[i % previousValues] = data[i];
       break;
     case 1:
       fill = initialFill;
-      tmp = peek(&reader, fill);
-      forward(&reader, fill);
+      tmp = read(&reader, fill);
       fill -= previousValuesLog2;
       index = (tmp >> fill) & ((1 << previousValuesLog2) - 1);
       fill -= 3;
@@ -75,12 +57,12 @@ int chimp_decode(uint8_t *in, size_t len, double *out, double error) {
         significantBits = 64;
       }
       storedTrailingZeros = 64 - significantBits - storedLeadingZeros;
-      delta = read_long(&reader, significantBits);
+      delta = readLong(&reader, significantBits);
       data[i] = storedValues[index] ^ (delta << storedTrailingZeros);
       storedValues[i % previousValues] = data[i];
       break;
     default:
-      data[i] = storedValues[read_long(&reader, previousValuesLog2)];
+      data[i] = storedValues[readLong(&reader, previousValuesLog2)];
       storedValues[i % previousValues] = data[i];
       break;
     }

@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <cstdint>
 #include <math.h>
-#include <stdio.h>
 
 #include "BitStream/BitReader.h"
 #include "BitStream/BitWriter.h"
@@ -26,9 +25,6 @@ public:
     if (v == 0.0) {
       size += writeInt(2, 2);
       vPrimeLong = data.i;
-      // } else if (isnan(v)) {
-      //         size += writeInt(2,2);
-      //         vPrimeLong = 0xfff8000000000000L & data.i;
     } else {
       int *alphaAndBetaStar = getAlphaAndBetaStar(v, lastBetaStar);
       int e = ((int)(data.i >> 52)) & 0x7ff;
@@ -223,9 +219,6 @@ int elf_encode(double *in, size_t len, uint8_t **out, double error) {
   ElfCompressor compressor;
   compressor.init(len);
   for (int i = 0; i < len; i++) {
-    if (i == 4219) {
-      asm("nop");
-    }
     compressor.addValue(in[i]);
   }
   compressor.close();

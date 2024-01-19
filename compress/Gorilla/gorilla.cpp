@@ -3,7 +3,6 @@
 #include "BitStream/BitWriter.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 int gorilla_encode(double *in, size_t len, uint8_t **out, double error) {
@@ -63,17 +62,7 @@ int gorilla_encode(double *in, size_t len, uint8_t **out, double error) {
 
 uint64_t read_delta(BitReader *reader, uint64_t leading, uint64_t meaningful) {
   uint64_t trailing = 64 - leading - meaningful;
-  uint64_t delta;
-  if (meaningful > 32) {
-    delta = peek(reader, 32);
-    forward(reader, 32);
-    delta <<= meaningful - 32;
-    delta |= peek(reader, meaningful - 32);
-    forward(reader, meaningful - 32);
-  } else {
-    delta = peek(reader, meaningful);
-    forward(reader, meaningful);
-  }
+  uint64_t delta = readLong(reader, meaningful);
   return delta << trailing;
 }
 
@@ -100,10 +89,8 @@ int gorilla_decode(uint8_t *in, size_t len, double *out, double error) {
       break;
     case 3:
       forward(&reader, 2);
-      leading = peek(&reader, 5);
-      forward(&reader, 5);
-      meaningful = peek(&reader, 6) + 1;
-      forward(&reader, 6);
+      leading = read(&reader, 5);
+      meaningful = read(&reader, 6) + 1;
       delta = read_delta(&reader, leading, meaningful);
       data[i] = data[i - 1] ^ delta;
       break;
