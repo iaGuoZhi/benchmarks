@@ -8,6 +8,7 @@
 
 #include "Chimp/chimp.h"
 #include "Gorilla/gorilla.h"
+#include "Elf/elf.h"
 
 enum ListError {
   SKIP = -2,
@@ -38,6 +39,7 @@ struct {
 } compressors[] = {
     {"Gorilla", Type::Lossless, gorilla_encode, gorilla_decode, empty},
     {"Chimp", Type::Lossless, chimp_encode, chimp_decode, empty},
+    {"Elf", Type::Lossless, elf_encode, elf_decode, empty},
 };
 
 // Available datasets
@@ -46,18 +48,18 @@ struct {
   const char *path;
   double error;
 } datasets[] = {
+    {"us-stocks", "./data/us-stocks.csv", 1E-3},
     {"air-sensor", "./data/air-sensor.csv", 1E-3},
     {"bird-migration", "./data/bird-migration.csv", 1E-3},
     {"bitcoin-historical", "./data/bitcoin-historical.csv", 1E-3},
-    {"us-stocks", "./data/us-stocks.csv", 1E-3},
 };
 
 // List of compressors to be evaluated
-int compressor_list[] = {0, 1, EOL};
+int compressor_list[] = {0, 1, 2, EOL};
 // List of datasets to be evaluated
 int dataset_list[] = {0, 1, 2, 3, EOL};
 // List of slice lengths to be evaluated
-int bsize_list[] = {1000, 2000, EOL};
+int bsize_list[] = {5, 1000, EOL};
 
 ///////////////////////// Setting End ////////////////////////////
 
@@ -101,7 +103,7 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
   int64_t start;
 
   // compress
-  FILE *fc = fopen("tmp.cmp", "w");
+  FILE *fc = fopen("/tmp/tmp.cmp", "w");
   int block = 0;
   while (!feof(file)) {
     int len0 = read_csv_file(file, d0, chunk_size);
@@ -122,7 +124,7 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
 
   // decompress
   rewind(file);
-  fc = fopen("tmp.cmp", "r");
+  fc = fopen("/tmp/tmp.cmp", "r");
   block = 0;
   while (!feof(file)) {
     int len0 = read_csv_file(file, d0, chunk_size);
@@ -225,8 +227,6 @@ void report(int c) {
 
 int main() {
   double data[1000];
-  uint8_t *cmp;
-  double *decmp;
   for (int i = 0; i < 1000; i++) {
     data[i] = (double)rand() / RAND_MAX;
   }
