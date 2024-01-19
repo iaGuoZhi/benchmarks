@@ -16,4 +16,4 @@
 - [ ] (memory order)
 - [ ] (context switch)
 - [ ] (virtualization)
-- [ ] (compression)
+- [x] (compression)
