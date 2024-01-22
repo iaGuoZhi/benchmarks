@@ -170,7 +170,7 @@ public:
   }
 };
 
-int elf_decode(uint8_t *in, size_t len, double *out, double error) {
+int elf_decode(uint8_t *in, size_t len, double *out, double error, const char *options) {
   ElfDecompressor decompressor(in, len);
   return decompressor.decompress(out);
 }

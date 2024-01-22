@@ -8,7 +8,7 @@
 
 static const int16_t leadingRep[] = {0, 8, 12, 16, 18, 20, 22, 24};
 
-int chimp_decode(uint8_t *in, size_t len, double *out, double error) {
+int chimp_decode(uint8_t *in, size_t len, double *out, double error, const char *options) {
   assert((len - 10) % 4 == 0);
 
   int32_t storedLeadingZeros = INT32_MAX;

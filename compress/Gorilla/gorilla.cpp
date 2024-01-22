@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-int gorilla_encode(double *in, size_t len, uint8_t **out, double error) {
+int gorilla_encode(double *in, size_t len, uint8_t **out, double error, const char *options) {
   assert(len > 0);
 
   int buffer_size = SIZE_IN_BIT((1 + 1 + 5 + 6 + 64) * len) * 4;
@@ -66,7 +66,7 @@ uint64_t read_delta(BitReader *reader, uint64_t leading, uint64_t meaningful) {
   return delta << trailing;
 }
 
-int gorilla_decode(uint8_t *in, size_t len, double *out, double error) {
+int gorilla_decode(uint8_t *in, size_t len, double *out, double error, const char *options) {
   int data_len = *(uint16_t *)in;
   out[0] = *(double *)(in + 2);
   BitReader reader;

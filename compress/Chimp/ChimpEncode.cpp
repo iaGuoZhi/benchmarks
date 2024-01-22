@@ -18,7 +18,7 @@ static const uint16_t leadingRnd[] = {
     24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
     24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24};
 
-int chimp_encode(double *in, size_t len, uint8_t **out, double error) {
+int chimp_encode(double *in, size_t len, uint8_t **out, double error, const char *options) {
   assert(len > 0);
 
   int buffer_size = SIZE_IN_BIT((1 + 1 + 5 + 6 + 64) * len) * 4;

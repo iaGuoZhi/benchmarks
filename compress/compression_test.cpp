@@ -9,6 +9,7 @@
 #include "Chimp/chimp.h"
 #include "Gorilla/gorilla.h"
 #include "Elf/elf.h"
+#include "Comb/comb.h"
 
 enum ListError {
   SKIP = -2,
@@ -30,16 +31,21 @@ Perf empty = {0, 0, 0, 0};
  *                      Evaluation Settings
  *********************************************************************/
 // Available compressors
+char all_options[3][100] = {"gorilla,delta,eraser", "chimp,delta,eraser", "elf,delta,eraser"};
 struct {
   char name[16];
   Type type;
-  int (*compress)(double *in, size_t len, uint8_t **out, double error);
-  int (*decompress)(uint8_t *in, size_t len, double *out, double error);
+  int (*compress)(double *in, size_t len, uint8_t **out, double error, const char *options);
+  int (*decompress)(uint8_t *in, size_t len, double *out, double error, const char *options);
   Perf perf;
+  const char *options;
 } compressors[] = {
-    {"Gorilla", Type::Lossless, gorilla_encode, gorilla_decode, empty},
-    {"Chimp", Type::Lossless, chimp_encode, chimp_decode, empty},
-    {"Elf", Type::Lossless, elf_encode, elf_decode, empty},
+    {"Gorilla", Type::Lossless, gorilla_encode, gorilla_decode, empty, ""},
+    {"Chimp", Type::Lossless, chimp_encode, chimp_decode, empty, ""},
+    {"Elf", Type::Lossless, elf_encode, elf_decode, empty, ""},
+    {"Comb2", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
+    {"Comb0", Type::Lossless, comb_encode, comb_decode, empty, all_options[0]},
+    {"Comb1", Type::Lossless, comb_encode, comb_decode, empty, all_options[1]},
 };
 
 // Available datasets
@@ -49,15 +55,15 @@ struct {
   double error;
 } datasets[] = {
     {"us-stocks", "./data/us-stocks.csv", 1E-3},
-    {"air-sensor", "./data/air-sensor.csv", 1E-3},
+//    {"air-sensor", "./data/air-sensor.csv", 1E-3},
     {"bird-migration", "./data/bird-migration.csv", 1E-3},
-    {"bitcoin-historical", "./data/bitcoin-historical.csv", 1E-3},
+//    {"bitcoin-historical", "./data/bitcoin-historical.csv", 1E-3},
 };
 
 // List of compressors to be evaluated
-int compressor_list[] = {0, 1, 2, EOL};
+int compressor_list[] = {0, 1, 2, 3, 4, 5, EOL};
 // List of datasets to be evaluated
-int dataset_list[] = {0, 1, 2, 3, EOL};
+int dataset_list[] = {0, 1, EOL, 3, EOL};
 // List of slice lengths to be evaluated
 int bsize_list[] = {1000, 2000, EOL};
 
@@ -111,7 +117,7 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
       break;
 
     start = clock();
-    int len1 = compressors[c].compress(d0, len0, &d1, error);
+    int len1 = compressors[c].compress(d0, len0, &d1, error, compressors[c].options);
     compressors[c].perf.cmp_time += clock() - start;
     compressors[c].perf.cmp_size += len1;
 
@@ -121,6 +127,9 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
     block++;
   }
   fclose(fc);
+
+  std::cout << "Compressor: " << compressors[c].name << "\tsize: " << compressors[c].perf.cmp_size
+            << "\ttime: " << compressors[c].perf.cmp_time << std::endl;
 
   // decompress
   rewind(file);
@@ -136,7 +145,7 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
     d1 = (uint8_t *)malloc(len1);
     (void)!fread(d1, 1, len1, fc);
     start = clock();
-    int len2 = compressors[c].decompress(d1, len1, d2, error);
+    int len2 = compressors[c].decompress(d1, len1, d2, error, compressors[c].options);
     compressors[c].perf.dec_time += clock() - start;
     compressors[c].perf.ori_size += len2 * sizeof(double);
 
