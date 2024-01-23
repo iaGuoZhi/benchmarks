@@ -31,7 +31,7 @@ Perf empty = {0, 0, 0, 0};
  *                      Evaluation Settings
  *********************************************************************/
 // Available compressors
-char all_options[3][100] = {"gorilla,delta,eraser", "chimp,delta,eraser", "elf,delta,eraser"};
+char all_options[3][100] = {"gorilla,delta", "chimp,delta", "elf,delta,eraser"};
 struct {
   char name[16];
   Type type;
