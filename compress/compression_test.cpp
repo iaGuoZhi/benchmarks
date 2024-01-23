@@ -4,12 +4,10 @@
 #include <string>
 #include <string.h>
 #include <iostream>
+#include <iomanip>
 #include <time.h>
 
-#include "Chimp/chimp.h"
-#include "Gorilla/gorilla.h"
-#include "Elf/elf.h"
-#include "Comb/comb.h"
+#include "comb.h"
 
 enum ListError {
   SKIP = -2,
@@ -31,7 +29,7 @@ Perf empty = {0, 0, 0, 0};
  *                      Evaluation Settings
  *********************************************************************/
 // Available compressors
-char all_options[3][100] = {"gorilla,delta", "chimp,delta", "elf,delta,eraser"};
+char all_options[5][100] = {"gorilla,delta", "chimp,delta", "elf,delta,eraser", "gorilla,delta,eraser", "chimp,delta,eraser"};
 struct {
   char name[16];
   Type type;
@@ -40,12 +38,11 @@ struct {
   Perf perf;
   const char *options;
 } compressors[] = {
-    {"Gorilla", Type::Lossless, gorilla_encode, gorilla_decode, empty, ""},
-    {"Chimp", Type::Lossless, chimp_encode, chimp_decode, empty, ""},
-    {"Elf", Type::Lossless, elf_encode, elf_decode, empty, ""},
-    {"Comb2", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
-    {"Comb0", Type::Lossless, comb_encode, comb_decode, empty, all_options[0]},
-    {"Comb1", Type::Lossless, comb_encode, comb_decode, empty, all_options[1]},
+    {"Gorilla", Type::Lossless, comb_encode, comb_decode, empty, all_options[0]},
+    {"Chimp", Type::Lossless, comb_encode, comb_decode, empty, all_options[1]},
+    {"Elf", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
+    {"Gorilla+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[3]},
+    {"Chimp+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[4]},
 };
 
 // Available datasets
@@ -61,7 +58,7 @@ struct {
 };
 
 // List of compressors to be evaluated
-int compressor_list[] = {0, 1, 2, 3, 4, 5, EOL};
+int compressor_list[] = {0, 1, 2, 3, 4, EOL};
 // List of datasets to be evaluated
 int dataset_list[] = {0, 1, EOL, 3, EOL};
 // List of slice lengths to be evaluated
@@ -218,7 +215,7 @@ int test_dataset(int ds, int chunk_size) {
 }
 
 void report(int c) {
-  printf("========= %s ==========\t", compressors[c].name);
+  std::cout << compressors[c].name << std::setw(20 - strlen(compressors[c].name)) << "\t";
   printf("Compression ratio: %lf\t",
          (double)compressors[c].perf.ori_size / compressors[c].perf.cmp_size);
   printf("Compression speed: %lf MB/s\t",
