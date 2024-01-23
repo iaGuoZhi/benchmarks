@@ -128,9 +128,6 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
   }
   fclose(fc);
 
-  std::cout << "Compressor: " << compressors[c].name << "\tsize: " << compressors[c].perf.cmp_size
-            << "\ttime: " << compressors[c].perf.cmp_time << std::endl;
-
   // decompress
   rewind(file);
   fc = fopen("/tmp/tmp.cmp", "r");
