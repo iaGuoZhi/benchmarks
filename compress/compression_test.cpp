@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <time.h>
+#include <chrono>
 
 #include "comb.h"
 
@@ -46,12 +47,30 @@ struct {
 };
 
 // Available readers
-int read_csv_file(FILE *file, double *data, int len) {
+int read_timestamp(FILE *file, double *data, int len) {
   char line[1024];
   int i = 0;
   while (fgets(line, 1024, file)) {
     char *token = strtok(line, ",");
-    token = strtok(NULL, ",");
+
+    std::tm t = {};
+    std::istringstream ss(token);
+    ss >> std::get_time(&t, "%Y-%m-%dT%H:%M:%SZ");
+    std::chrono::system_clock::time_point tp = std::chrono::system_clock::from_time_t(std::mktime(&t));
+    std::chrono::duration<double> duration = tp.time_since_epoch();
+    data[i++] = duration.count();
+    if (i >= len)
+      return i;
+  }
+  return i;
+}
+
+int read_float(FILE *file, double *data, int len) {
+  char line[1024];
+  int i = 0;
+  while (fgets(line, 1024, file)) {
+    strtok(line, ",");
+    char *token = strtok(NULL, ",");
     data[i++] = atof(token);
     if (i >= len)
       return i;
@@ -59,7 +78,7 @@ int read_csv_file(FILE *file, double *data, int len) {
   return i;
 }
 
-int read_pcap_file(FILE *file, double *data, int len) {
+int read_entire_file(FILE *file, double *data, int len) {
   int i = 0;
   char buffer[8];
   for (; i < len; ++i) {
@@ -71,7 +90,7 @@ int read_pcap_file(FILE *file, double *data, int len) {
   return i;
 }
 
-int (*readers[])(FILE *file, double *data, int len) = {read_csv_file, read_pcap_file};
+int (*readers[])(FILE *file, double *data, int len) = {read_float, read_timestamp, read_entire_file};
 
 // Available datasets
 struct {
@@ -81,17 +100,15 @@ struct {
   double error;
   int compressor_list[20];
 } datasets[] = {
-    {"us-stocks", "./data/us-stocks.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"air-sensor", "./data/air-sensor.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"bird-migration", "./data/bird-migration.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"bitcoin-historical", "./data/bitcoin-historical.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"pcap", "./data/tcpdump.pcap", 1, 1E-3, {0, 1, EOL}},
+    {"us-stocks float", "./data/us-stocks.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"bird-migration float", "./data/bird-migration.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"us-stocks timestamp", "./data/us-stocks.csv", 1, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"bird-migration timestamp", "./data/bird-migration.csv", 1, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"pcap", "./data/tcpdump.pcap", 2, 1E-3, {0, 1, EOL}},
 };
 
-// List of compressors to be evaluated
-//int compressor_list[] = {0, 1, 2, 3, 4, EOL};
 // List of datasets to be evaluated
-int dataset_list[] = {0, 1, 2, 3, 4, EOL};
+int dataset_list[] = {0, 1, 2, 3, 4, 5, EOL};
 // List of slice lengths to be evaluated
 int bsize_list[] = {1000, 2000, EOL};
 
