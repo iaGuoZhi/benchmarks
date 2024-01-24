@@ -12,7 +12,7 @@ protected:
   size_t size = 0;
   BitWriter writer;
   uint32_t *output;
-  CombOptions::XOR_type xor_type;
+  CombOptions opts;
 
   virtual void writeFirst(long value) = 0;
   virtual void compressValue(long value) = 0;
@@ -20,15 +20,11 @@ protected:
 public:
   BitWriter *getWriter() { return &writer; }
 
-  inline bool getXORType() {
-    return xor_type;
-  }
-
-  inline void init(size_t size, CombOptions::XOR_type xor_type) {
+  inline void init(size_t size, CombOptions opts) {
     size *= 12;
     output = (uint32_t *)malloc(size + 4);
     initBitWriter(&writer, output + 1, size / sizeof(uint32_t));
-    this->xor_type = xor_type;
+    this->opts = opts;
   }
 
   inline void addValue(long value) {

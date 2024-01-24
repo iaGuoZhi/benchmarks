@@ -51,7 +51,7 @@ RecoverDecompressor::RecoverDecompressor(uint8_t *in, size_t len, const char *op
       xorDecompressor = new ElfXORDecompressor();
       break;
   }
-  xorDecompressor->init((uint32_t *)in, len / 4);
+  xorDecompressor->init((uint32_t *)in, len / 4, opts);
 }
 
 int RecoverDecompressor::decompress(double *output) {

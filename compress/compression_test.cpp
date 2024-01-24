@@ -29,23 +29,6 @@ Perf empty = {0, 0, 0, 0};
 /*********************************************************************
  *                      Evaluation Settings
  *********************************************************************/
-// Available compressors
-char all_options[5][100] = {"gorilla,delta", "chimp,delta", "elf,delta,eraser", "gorilla,delta,eraser", "chimp,delta,eraser"};
-struct {
-  char name[16];
-  Type type;
-  int (*compress)(double *in, size_t len, uint8_t **out, double error, const char *options);
-  int (*decompress)(uint8_t *in, size_t len, double *out, double error, const char *options);
-  Perf perf;
-  const char *options;
-} compressors[] = {
-    {"Gorilla", Type::Lossless, comb_encode, comb_decode, empty, all_options[0]},
-    {"Chimp", Type::Lossless, comb_encode, comb_decode, empty, all_options[1]},
-    {"Elf", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
-    {"Gorilla+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[3]},
-    {"Chimp+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[4]},
-};
-
 // Available readers
 int read_timestamp(FILE *file, double *data, int len) {
   char line[1024];
@@ -92,6 +75,33 @@ int read_entire_file(FILE *file, double *data, int len) {
 
 int (*readers[])(FILE *file, double *data, int len) = {read_float, read_timestamp, read_entire_file};
 
+// Available compressors
+char all_options[10][100] = {
+  "gorilla,delta",
+  "chimp,delta",
+  "elf,delta,eraser",
+  "gorilla,delta,eraser",
+  "chimp,delta,eraser",
+  "gorilla,timestamp",
+  "chimp,timestamp,delta-of-delta"};
+
+struct {
+  char name[50];
+  Type type;
+  int (*compress)(double *in, size_t len, uint8_t **out, double error, const char *options);
+  int (*decompress)(uint8_t *in, size_t len, double *out, double error, const char *options);
+  Perf perf;
+  const char *options;
+} compressors[] = {
+    {"Gorilla", Type::Lossless, comb_encode, comb_decode, empty, all_options[0]},
+    {"Chimp", Type::Lossless, comb_encode, comb_decode, empty, all_options[1]},
+    {"Elf", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
+    {"Gorilla+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[3]},
+    {"Chimp+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[4]},
+    {"Gorilla+Ts", Type::Lossless, comb_encode, comb_decode, empty, all_options[5]},
+    {"Gorilla+Ts+DoD", Type::Lossless, comb_encode, comb_decode, empty, all_options[6]},
+};
+
 // Available datasets
 struct {
   char name[32];
@@ -102,15 +112,15 @@ struct {
 } datasets[] = {
     {"us-stocks float", "./data/us-stocks.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
     {"bird-migration float", "./data/bird-migration.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"us-stocks timestamp", "./data/us-stocks.csv", 1, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"bird-migration timestamp", "./data/bird-migration.csv", 1, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"pcap", "./data/tcpdump.pcap", 2, 1E-3, {0, 1, EOL}},
+    {"us-stocks timestamp", "./data/us-stocks.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, EOL}},
+    {"bird-migration timestamp", "./data/bird-migration.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, EOL}},
+    {"pcap", "./data/tcpdump.pcap", 2, 1E-3, {0, 1, 5, EOL}},
 };
 
 // List of datasets to be evaluated
-int dataset_list[] = {0, 1, 2, 3, 4, 5, EOL};
+int dataset_list[] = {0, 1, 2, 3, 4, EOL};
 // List of slice lengths to be evaluated
-int bsize_list[] = {1000, 2000, EOL};
+int bsize_list[] = {2000, EOL};
 
 ///////////////////////// Setting End ////////////////////////////
 

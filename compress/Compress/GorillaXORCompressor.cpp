@@ -1,4 +1,6 @@
 #include "GorillaXORCompressor.h"
+#include <iostream>
+#include <iomanip>
 
 void GorillaXORCompressor::writeFirst(long value) {
   writeLong(&writer, value, 64);
@@ -6,14 +8,51 @@ void GorillaXORCompressor::writeFirst(long value) {
   prevVal = value;
 }
 
-void GorillaXORCompressor::compressValue(long value) {
-  uint64_t vDelta = value ^ prevVal;
+uint64_t GorillaXORCompressor::calculateD(long value) {
+  if (opts.getIsTimestamp()) {
+    return calculateInterval(value);
+  } else {
+    return calculateXOR(value);
+  }
+}
+
+uint64_t GorillaXORCompressor::calculateXOR(long value) {
+  uint64_t _d;
+  if (opts.getXORType() == CombOptions::XOR_type::Delta) {
+    delta = value ^ prevVal;
+    _d = delta;
+  } else if (opts.getXORType() == CombOptions::XOR_type::DeltaOfDelta) {
+    delta = value ^ prevVal;
+    deltaOfDelta = delta ^ prevDelta;
+    prevDelta = delta;
+    _d = deltaOfDelta;
+  }
   prevVal = value;
-  if (vDelta == 0) {
+  return _d;
+}
+
+uint64_t GorillaXORCompressor::calculateInterval(long value) {
+  uint64_t _d;
+  if (opts.getXORType() == CombOptions::XOR_type::Delta) {
+    delta = value - prevVal;
+    _d = delta;
+  } else if (opts.getXORType() == CombOptions::XOR_type::DeltaOfDelta) {
+    delta = value - prevVal;
+    deltaOfDelta = delta - prevDelta;
+    prevDelta = delta;
+    _d = deltaOfDelta;
+  }
+  prevVal = value;
+  return _d;
+}
+
+void GorillaXORCompressor::compressValue(long value) {
+  uint64_t _d = calculateD(value);
+  if (_d == 0) {
     write(&writer, 0, 1);
   } else {
-    leading = __builtin_clzl(vDelta);
-    trailing = __builtin_ctzl(vDelta);
+    leading = __builtin_clzl(_d);
+    trailing = __builtin_ctzl(_d);
 
     leading = (leading >= 32) ? 31 : leading;
     uint64_t l;
@@ -33,10 +72,10 @@ void GorillaXORCompressor::compressValue(long value) {
     }
 
     if (l <= 32) {
-      write(&writer, vDelta >> prevTrailing, l);
+      write(&writer, _d >> prevTrailing, l);
     } else {
-      write(&writer, vDelta >> 32, 32 - prevLeading);
-      write(&writer, vDelta >> prevTrailing, 32 - prevTrailing);
+      write(&writer, _d >> 32, 32 - prevLeading);
+      write(&writer, _d >> prevTrailing, 32 - prevTrailing);
     }
   }
   length++;

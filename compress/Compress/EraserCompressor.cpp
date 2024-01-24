@@ -43,7 +43,7 @@ void EraserCompressor::init(int length) {
       xorCompressor = new ElfXORCompressor();
       break;
   }
-  xorCompressor->init(length, opts.getXORType());
+  xorCompressor->init(length, opts);
 }
 
 uint32_t* EraserCompressor::getBytes() {

@@ -9,7 +9,7 @@
 class AbstractXORDecompressor {
 protected:
   bool first = true;
-  CombOptions::XOR_type xor_type;
+  CombOptions opts;
   BitReader reader;
 
   virtual double firstValue() = 0;
@@ -17,9 +17,10 @@ protected:
 
 public:
   size_t length = 0;
-  void init(uint32_t *in, size_t len) {
+  void init(uint32_t *in, size_t len, CombOptions opts) {
     initBitReader(&reader, in + 1, len - 1);
     length = in[0];
+    this->opts = opts;
   }
 
   BitReader *getReader() { return &reader; }
