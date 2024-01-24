@@ -45,22 +45,53 @@ struct {
     {"Chimp+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[4]},
 };
 
+// Available readers
+int read_csv_file(FILE *file, double *data, int len) {
+  char line[1024];
+  int i = 0;
+  while (fgets(line, 1024, file)) {
+    char *token = strtok(line, ",");
+    token = strtok(NULL, ",");
+    data[i++] = atof(token);
+    if (i >= len)
+      return i;
+  }
+  return i;
+}
+
+int read_pcap_file(FILE *file, double *data, int len) {
+  int i = 0;
+  char buffer[8];
+  for (; i < len; ++i) {
+    if (fread(buffer, sizeof(uint8_t), 8, file) != 8) {
+      return i;
+    }
+    memcpy(&(data[i]), buffer, 8);
+  }
+  return i;
+}
+
+int (*readers[])(FILE *file, double *data, int len) = {read_csv_file, read_pcap_file};
+
 // Available datasets
 struct {
   char name[32];
   const char *path;
+  int reader;
   double error;
+  int compressor_list[20];
 } datasets[] = {
-    {"us-stocks", "./data/us-stocks.csv", 1E-3},
-//    {"air-sensor", "./data/air-sensor.csv", 1E-3},
-    {"bird-migration", "./data/bird-migration.csv", 1E-3},
-//    {"bitcoin-historical", "./data/bitcoin-historical.csv", 1E-3},
+    {"us-stocks", "./data/us-stocks.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"air-sensor", "./data/air-sensor.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"bird-migration", "./data/bird-migration.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"bitcoin-historical", "./data/bitcoin-historical.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"pcap", "./data/tcpdump.pcap", 1, 1E-3, {0, 1, EOL}},
 };
 
 // List of compressors to be evaluated
-int compressor_list[] = {0, 1, 2, 3, 4, EOL};
+//int compressor_list[] = {0, 1, 2, 3, 4, EOL};
 // List of datasets to be evaluated
-int dataset_list[] = {0, 1, EOL, 3, EOL};
+int dataset_list[] = {0, 1, 2, 3, 4, EOL};
 // List of slice lengths to be evaluated
 int bsize_list[] = {1000, 2000, EOL};
 
@@ -69,7 +100,8 @@ int bsize_list[] = {1000, 2000, EOL};
 int check(double *d0, double *d1, size_t len, double error) {
   if (error == 0) {
     for (int i = 0; i < len; i++) {
-      if (d0[i] != d1[i]) {
+      //if (d0[i] != d1[i]) {
+      if (memcmp(&(d0[i]), &(d1[i]), 8) != 0) {
         printf("%d: %.16lf(%lx) vs %.16lf(%lx)\n", i, d0[i],
                ((uint64_t *)d0)[i], d1[i], ((uint64_t *)d1)[i]);
         return -1;
@@ -86,20 +118,7 @@ int check(double *d0, double *d1, size_t len, double error) {
   return 0;
 }
 
-int read_csv_file(FILE *file, double *data, int len) {
-  char line[1024];
-  int i = 0;
-  while (fgets(line, 1024, file)) {
-    char *token = strtok(line, ",");
-    token = strtok(NULL, ",");
-    data[i++] = atof(token);
-    if (i >= len)
-      return i;
-  }
-  return i;
-}
-
-int test_file(FILE *file, int c, int chunk_size, double error) {
+int test_file(FILE *file, int r, int c, int chunk_size, double error) {
   double *d0 = (double *)malloc(chunk_size * sizeof(double));
   uint8_t *d1;
   double *d2 = (double *)malloc(chunk_size * sizeof(double));
@@ -109,7 +128,7 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
   FILE *fc = fopen("/tmp/tmp.cmp", "w");
   int block = 0;
   while (!feof(file)) {
-    int len0 = read_csv_file(file, d0, chunk_size);
+    int len0 = readers[r](file, d0, chunk_size);
     if (len0 == 0)
       break;
 
@@ -130,7 +149,7 @@ int test_file(FILE *file, int c, int chunk_size, double error) {
   fc = fopen("/tmp/tmp.cmp", "r");
   block = 0;
   while (!feof(file)) {
-    int len0 = read_csv_file(file, d0, chunk_size);
+    int len0 = readers[r](file, d0, chunk_size);
     if (len0 == 0)
       break;
 
@@ -198,15 +217,15 @@ int test_dataset(int ds, int chunk_size) {
 
   //draw_progress(cur_file, file_cnt, 80);
   FILE *file = fopen(file_path, "rb");
-  for (int i = 0; compressor_list[i] != EOL; i++) {
-    if (compressor_list[i] == SKIP) {
+  for (int i = 0; datasets[ds].compressor_list[i] != EOL; i++) {
+    if (datasets[ds].compressor_list[i] == SKIP) {
       continue;
     }
     fseek(file, 0, SEEK_SET);
-    if (test_file(file, compressor_list[i], chunk_size, datasets[ds].error)) {
+    if (test_file(file, datasets[ds].reader, datasets[ds].compressor_list[i], chunk_size, datasets[ds].error)) {
       printf("Error Occurred while testing %s, skipping\n",
-             compressors[compressor_list[i]].name);
-      compressor_list[i] = SKIP;
+             compressors[datasets[ds].compressor_list[i]].name);
+      datasets[ds].compressor_list[i] = SKIP;
     }
   }
   fclose(file);
@@ -239,12 +258,11 @@ int main() {
     fflush(stdout);
     for (int j = 0; dataset_list[j] != EOL; j++) {
       test_dataset(dataset_list[j], bsize_list[i]);
-      for (int k = 0; compressor_list[k] != EOL; k++) {
-        if (compressor_list[k] != SKIP) {
-          report(compressor_list[k]);
+      for (int k = 0; datasets[dataset_list[j]].compressor_list[k] != EOL; k++) {
+        if (datasets[dataset_list[j]].compressor_list[k] != SKIP) {
+          report(datasets[dataset_list[j]].compressor_list[k]);
         }
-        Perf &p = compressors[compressor_list[k]].perf;
-        __builtin_memset(&compressors[compressor_list[k]].perf, 0,
+        __builtin_memset(&compressors[datasets[dataset_list[j]].compressor_list[k]].perf, 0,
                          sizeof(Perf));
       }
     }
