@@ -79,6 +79,7 @@ int (*readers[])(FILE *file, double *data, int len) = {readFloat, readTimestamp,
 char all_options[10][100] = {
   "gorilla,delta",
   "chimp,delta",
+  "elf,delta",
   "elf,delta,eraser",
   "gorilla,delta,eraser",
   "chimp,delta,eraser",
@@ -95,11 +96,12 @@ struct {
 } compressors[] = {
     {"Gorilla", Type::Lossless, comb_encode, comb_decode, empty, all_options[0]},
     {"Chimp", Type::Lossless, comb_encode, comb_decode, empty, all_options[1]},
-    {"Elf", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
-    {"Gorilla+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[3]},
-    {"Chimp+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[4]},
-    {"Ts+Delta", Type::Lossless, comb_encode, comb_decode, empty, all_options[5]},
-    {"Ts+D-of-D", Type::Lossless, comb_encode, comb_decode, empty, all_options[6]},
+    {"Elf+No-Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
+    {"Elf", Type::Lossless, comb_encode, comb_decode, empty, all_options[3]},
+    {"Gorilla+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[4]},
+    {"Chimp+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[5]},
+    {"Ts+Delta", Type::Lossless, comb_encode, comb_decode, empty, all_options[6]},
+    {"Ts+D-of-D", Type::Lossless, comb_encode, comb_decode, empty, all_options[7]},
 };
 
 // Available datasets
@@ -110,11 +112,11 @@ struct {
   double error;
   int compressor_list[20];
 } datasets[] = {
-    {"us-stocks float", "./data/us-stocks.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"bitcoin float", "./data/bitcoin-historical.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"us-stocks timestamp", "./data/us-stocks.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, EOL}},
-    {"bitcoin timestamp", "./data/bitcoin-historical.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, EOL}},
-    {"pcap", "./data/tcpdump.pcap", 2, 1E-3, {0, 1, EOL}},
+    {"us-stocks float", "./data/us-stocks.csv", 0, 1E-3, {0, 1, 2, 3, 4, 5, EOL}},
+    {"bitcoin float", "./data/bitcoin-historical.csv", 0, 1E-3, {0, 1, 2, 3, 4, 5, EOL}},
+    {"us-stocks timestamp", "./data/us-stocks.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, 7, EOL}},
+    {"bitcoin timestamp", "./data/bitcoin-historical.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, 7, EOL}},
+    {"pcap", "./data/tcpdump.pcap", 2, 1E-3, {0, 1, 2, EOL}},
 };
 
 // List of datasets to be evaluated
