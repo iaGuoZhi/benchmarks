@@ -25,5 +25,6 @@ private:
 
 public:
   Recover(uint8_t *in, size_t len, const char *options);
+  ~Recover();
   int decompress(double *output);
 };

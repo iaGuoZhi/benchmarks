@@ -9,4 +9,7 @@ private:
   void writeFirst(long value);
   void compressInterval(long _d);
   void compressValue(long value);
+
+public:
+  ~TimestampCompressor() {}
 };

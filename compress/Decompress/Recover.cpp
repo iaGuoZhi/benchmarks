@@ -67,3 +67,7 @@ int Recover::decompress(double *output) {
   }
   return len;
 }
+
+Recover::~Recover() {
+  delete decompressor;
+}

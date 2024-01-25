@@ -10,4 +10,6 @@ private:
 
   double firstValue();
   double nextValue();
+public:
+  ~ElfXORDecompressor() {}
 };

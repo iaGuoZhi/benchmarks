@@ -16,6 +16,7 @@ private:
 
 public:
   Eraser(const char *options);
+  ~Eraser();
   void init(int length);
   uint32_t *getBytes();
   void close();

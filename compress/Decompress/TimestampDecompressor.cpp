@@ -21,7 +21,6 @@ uint64_t TimestampDecompressor::recoverInterval(uint64_t _d){
 
 double TimestampDecompressor::nextValue() {
   long _d;
-  static int cnt = 1;
   if (read(&reader, 1) == 0) {
     _d = 0;
   } else if (read(&reader, 1) == 0) {

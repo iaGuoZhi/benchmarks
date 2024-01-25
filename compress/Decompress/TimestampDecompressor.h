@@ -8,4 +8,6 @@ private:
   double firstValue();
   uint64_t recoverInterval(uint64_t _d);
   double nextValue();
+public:
+  ~TimestampDecompressor() {}
 };

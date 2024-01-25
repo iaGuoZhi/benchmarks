@@ -33,4 +33,6 @@ public:
       return nextValue();
     }
   }
+
+  virtual ~AbstractDecompressor() {}
 };

@@ -1,3 +1,4 @@
+#include <cmath>
 #include "Eraser.h"
 #include "GorillaXORCompressor.h"
 #include "ChimpXORCompressor.h"
@@ -66,11 +67,11 @@ int Eraser::getSize() {
 void Eraser::addValue(double v) {
   DOUBLE data = {.d = v};
   long vPrimeLong;
-  assert(!isnan(v));
 
   if (!useEraser()) {
     xorCompress(data.i);
   } else {
+    assert(!std::isnan(v));
     if (v == 0.0) {
       writeInt(2, 2);
       vPrimeLong = data.i;
@@ -93,8 +94,13 @@ void Eraser::addValue(double v) {
         writeInt(2, 2);
         vPrimeLong = data.i;
       }
+      delete[] alphaAndBetaStar;
 
       xorCompress(vPrimeLong);
     }
   }
+}
+
+Eraser::~Eraser() {
+  delete compressor;
 }

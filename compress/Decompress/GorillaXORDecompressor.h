@@ -10,4 +10,5 @@ private:
   uint64_t readXOR(BitReader *reader, uint64_t leading, uint64_t meaningful);
   uint64_t recoverXOR(uint64_t _d);
   double nextValue();
+  ~GorillaXORDecompressor() {}
 };

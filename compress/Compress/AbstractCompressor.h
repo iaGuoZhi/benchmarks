@@ -45,4 +45,6 @@ public:
   inline size_t getSize() { return size; }
 
   inline uint32_t *getOut() { return output; }
+
+  virtual ~AbstractCompressor() {}
 };

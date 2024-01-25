@@ -8,4 +8,7 @@ private:
 
   void writeFirst(long value);
   void compressValue(long value);
+
+public:
+  ~ElfXORCompressor() {}
 };

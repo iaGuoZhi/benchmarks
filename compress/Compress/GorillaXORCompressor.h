@@ -13,4 +13,7 @@ private:
   uint64_t calculateXOR(long value);
   void writeFirst(long value);
   void compressValue(long value);
+
+public:
+  ~GorillaXORCompressor() {}
 };
