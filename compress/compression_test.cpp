@@ -30,7 +30,7 @@ Perf empty = {0, 0, 0, 0};
  *                      Evaluation Settings
  *********************************************************************/
 // Available readers
-int read_timestamp(FILE *file, double *data, int len) {
+int readTimestamp(FILE *file, double *data, int len) {
   char line[1024];
   int i = 0;
   while (fgets(line, 1024, file)) {
@@ -48,7 +48,7 @@ int read_timestamp(FILE *file, double *data, int len) {
   return i;
 }
 
-int read_float(FILE *file, double *data, int len) {
+int readFloat(FILE *file, double *data, int len) {
   char line[1024];
   int i = 0;
   while (fgets(line, 1024, file)) {
@@ -61,7 +61,7 @@ int read_float(FILE *file, double *data, int len) {
   return i;
 }
 
-int read_entire_file(FILE *file, double *data, int len) {
+int readEntireFile(FILE *file, double *data, int len) {
   int i = 0;
   char buffer[8];
   for (; i < len; ++i) {
@@ -73,7 +73,7 @@ int read_entire_file(FILE *file, double *data, int len) {
   return i;
 }
 
-int (*readers[])(FILE *file, double *data, int len) = {read_float, read_timestamp, read_entire_file};
+int (*readers[])(FILE *file, double *data, int len) = {readFloat, readTimestamp, readEntireFile};
 
 // Available compressors
 char all_options[10][100] = {
@@ -83,7 +83,7 @@ char all_options[10][100] = {
   "gorilla,delta,eraser",
   "chimp,delta,eraser",
   "gorilla,timestamp",
-  "chimp,timestamp,delta-of-delta"};
+  "gorilla,timestamp,delta-of-delta"};
 
 struct {
   char name[50];
@@ -111,10 +111,10 @@ struct {
   int compressor_list[20];
 } datasets[] = {
     {"us-stocks float", "./data/us-stocks.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
-    {"bird-migration float", "./data/bird-migration.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
+    {"bitcoin float", "./data/bitcoin-historical.csv", 0, 1E-3, {0, 1, 2, 3, 4, EOL}},
     {"us-stocks timestamp", "./data/us-stocks.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, EOL}},
-    {"bird-migration timestamp", "./data/bird-migration.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, EOL}},
-    {"pcap", "./data/tcpdump.pcap", 2, 1E-3, {0, 1, 5, EOL}},
+    {"bitcoin timestamp", "./data/bitcoin-historical.csv", 1, 1E-3, {0, 1, 2, 3, 4, 5, 6, EOL}},
+    {"pcap", "./data/tcpdump.pcap", 2, 1E-3, {0, 1, EOL}},
 };
 
 // List of datasets to be evaluated
@@ -200,6 +200,7 @@ int test_file(FILE *file, int r, int c, int chunk_size, double error) {
     }
 
     if (len0 != len2 || check(d0, d2, len0, terror)) {
+      printf("len0: %d, len2: %d\n", len0, len2);
       printf("Check failed, dumping data to tmp.data\n");
       FILE *dump = fopen("tmp.data", "w");
       fwrite(d0, sizeof(double), len0, dump);

@@ -4,6 +4,7 @@
 #include "BitStream/BitReader.h"
 #include "BitStream/BitWriter.h"
 #include "options.h"
+#include "defs.h"
 
 class AbstractXORCompressor {
 protected:
