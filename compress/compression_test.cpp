@@ -82,8 +82,8 @@ char all_options[10][100] = {
   "elf,delta,eraser",
   "gorilla,delta,eraser",
   "chimp,delta,eraser",
-  "gorilla,timestamp",
-  "gorilla,timestamp,delta-of-delta"};
+  "timestamp,delta",
+  "timestamp,delta-of-delta"};
 
 struct {
   char name[50];
@@ -98,8 +98,8 @@ struct {
     {"Elf", Type::Lossless, comb_encode, comb_decode, empty, all_options[2]},
     {"Gorilla+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[3]},
     {"Chimp+Eraser", Type::Lossless, comb_encode, comb_decode, empty, all_options[4]},
-    {"Gorilla+Ts", Type::Lossless, comb_encode, comb_decode, empty, all_options[5]},
-    {"Gorilla+Ts+DoD", Type::Lossless, comb_encode, comb_decode, empty, all_options[6]},
+    {"Ts+Delta", Type::Lossless, comb_encode, comb_decode, empty, all_options[5]},
+    {"Ts+D-of-D", Type::Lossless, comb_encode, comb_decode, empty, all_options[6]},
 };
 
 // Available datasets

@@ -1,65 +1,69 @@
-#include "EraserCompressor.h"
+#include "Eraser.h"
 #include "GorillaXORCompressor.h"
 #include "ChimpXORCompressor.h"
 #include "ElfXORCompressor.h"
+#include "TimestampCompressor.h"
 #include "options.h"
 
-int EraserCompressor::writeInt(int n, int len) {
-  write(xorCompressor->getWriter(), n, len);
+int Eraser::writeInt(int n, int len) {
+  write(compressor->getWriter(), n, len);
   return len;
 }
 
-int EraserCompressor::writeBit(bool bit) {
-  write(xorCompressor->getWriter(), bit, 1);
+int Eraser::writeBit(bool bit) {
+  write(compressor->getWriter(), bit, 1);
   return 1;
 }
 
-void EraserCompressor::xorCompress(long vPrimeLong) {
-  return xorCompressor->addValue(vPrimeLong);
+void Eraser::xorCompress(long vPrimeLong) {
+  return compressor->addValue(vPrimeLong);
 }
 
-bool EraserCompressor::useEraser() {
+bool Eraser::useEraser() {
   return opts.getUseEraser();
 }
 
-EraserCompressor::EraserCompressor(const char *options) {
+Eraser::Eraser(const char *options) {
   if (options != NULL) {
-    this->opts = options;
+    this->opts = CombOptions(options);
   }
 }
 
-void EraserCompressor::init(int length) {
+void Eraser::init(int length) {
   switch (opts.getCompressAlgo()) {
     case CombOptions::Compress_algo::Gorilla:
-      xorCompressor = new GorillaXORCompressor();
+      compressor = new GorillaXORCompressor();
       break;
     case CombOptions::Compress_algo::Chimp:
-      xorCompressor = new ChimpXORCompressor();
+      compressor = new ChimpXORCompressor();
       break;
     case CombOptions::Compress_algo::Elf:
-      xorCompressor = new ElfXORCompressor();
+      compressor = new ElfXORCompressor();
+      break;
+    case CombOptions::Compress_algo::Timestamp:
+      compressor = new TimestampCompressor();
       break;
     default:
-      xorCompressor = new ElfXORCompressor();
+      compressor = new GorillaXORCompressor();
       break;
   }
-  xorCompressor->init(length, opts);
+  compressor->init(length, opts);
 }
 
-uint32_t* EraserCompressor::getBytes() {
-  return xorCompressor->getOut();
+uint32_t* Eraser::getBytes() {
+  return compressor->getOut();
 }
 
-void EraserCompressor::close() {
+void Eraser::close() {
   writeInt(2, 2);
-  xorCompressor->close();
+  compressor->close();
 }
 
-int EraserCompressor::getSize() {
-  return xorCompressor->getSize();
+int Eraser::getSize() {
+  return compressor->getSize();
 }
 
-void EraserCompressor::addValue(double v) {
+void Eraser::addValue(double v) {
   DOUBLE data = {.d = v};
   long vPrimeLong;
   assert(!isnan(v));

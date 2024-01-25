@@ -1,10 +1,10 @@
 #include <cstdint>
-#include "EraserCompressor.h"
+#include "Eraser.h"
 #include "options.h"
 #include "comb.h"
 
 int comb_encode(double *in, size_t len, uint8_t **out, double error, const char *options) {
-  EraserCompressor compressor(options);
+  Eraser compressor(options);
   compressor.init(len);
   for (int i = 0; i < len; i++) {
     compressor.addValue(in[i]);

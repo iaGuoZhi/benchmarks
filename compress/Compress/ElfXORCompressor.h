@@ -1,6 +1,6 @@
-#include "AbstractXORCompressor.h"
+#include "AbstractCompressor.h"
 
-class ElfXORCompressor : public AbstractXORCompressor {
+class ElfXORCompressor : public AbstractCompressor {
 private:
   int storedLeadingZeros = __INT32_MAX__;
   int storedTrailingZeros = __INT32_MAX__;

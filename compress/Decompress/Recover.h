@@ -1,28 +1,29 @@
-#include "AbstractXORDecompressor.h"
+#include "AbstractDecompressor.h"
 #include "GorillaXORDecompressor.h"
 #include "ChimpXORDecompressor.h"
 #include "ElfXORDecompressor.h"
+#include "TimestampDecompressor.h"
 #include "options.h"
 #include "defs.h"
 
-class RecoverDecompressor {
+class Recover {
 private:
   int lastBetaStar = __INT32_MAX__;
   CombOptions opts;
   ElfXORDecompressor elfXORDecompressor;
-  AbstractXORDecompressor *xorDecompressor;
+  AbstractDecompressor *decompressor;
 
   double nextValue();
   double recoverVByBetaStar();
 
-  double xorDecompress() { return xorDecompressor->readValue(); }
+  double Decompress() { return decompressor->readValue(); }
   int readInt(int len) {
-    return read(xorDecompressor->getReader(), len);
+    return read(decompressor->getReader(), len);
   }
-  int getLength() { return xorDecompressor->length; }
+  int getLength() { return decompressor->length; }
   bool useEraser() { return opts.getUseEraser(); }
 
 public:
-  RecoverDecompressor(uint8_t *in, size_t len, const char *options);
+  Recover(uint8_t *in, size_t len, const char *options);
   int decompress(double *output);
 };

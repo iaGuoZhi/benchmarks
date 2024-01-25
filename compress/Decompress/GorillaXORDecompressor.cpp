@@ -4,9 +4,6 @@
 
 double GorillaXORDecompressor::firstValue() {
   prevVal.i = readLong(&reader, 64);
-  if (opts.getIsTimestamp()) {
-    return prevVal.i;
-  }
   return prevVal.d;
 }
 
@@ -17,30 +14,18 @@ uint64_t GorillaXORDecompressor::readXOR(BitReader *reader, uint64_t leading, ui
 }
 
 uint64_t GorillaXORDecompressor::recoverXOR(uint64_t _d){
-  if (opts.getXORType() == CombOptions::XOR_type::Delta) {
-    value.i = prevVal.i ^ _d;
-  } else if (opts.getXORType() == CombOptions::XOR_type::DeltaOfDelta) {
+  if (opts.getXORType() == CombOptions::XOR_type::DeltaOfDelta) {
     delta = prevDelta ^ _d;
     value.i = prevVal.i ^ delta;
     prevDelta = delta;
+  } else {
+    value.i = prevVal.i ^ _d;
   }
   prevVal.i = value.i;
   return value.i;
 }
 
-uint64_t GorillaXORDecompressor::recoverInterval(uint64_t _d){
-  if (opts.getXORType() == CombOptions::XOR_type::Delta) {
-    value.i = prevVal.i + _d;
-  } else if (opts.getXORType() == CombOptions::XOR_type::DeltaOfDelta) {
-    delta = prevDelta + _d;
-    value.i = prevVal.i + delta;
-    prevDelta = delta;
-  }
-  prevVal.i = value.i;
-  return value.i;
-}
-
-double GorillaXORDecompressor::nextFloatValue() {
+double GorillaXORDecompressor::nextValue() {
   uint64_t _d;
   switch (peek(&reader, 2)) {
   case 0:
@@ -64,31 +49,4 @@ double GorillaXORDecompressor::nextFloatValue() {
     break;
   }
   return value.d;
-}
-
-double GorillaXORDecompressor::nextTimestampValue() {
-  long _d;
-  static int cnt = 1;
-  if (read(&reader, 1) == 0) {
-    _d = 0;
-  } else if (read(&reader, 1) == 0) {
-    _d = read(&reader, 7) - 63;
-  } else if (read(&reader, 1) == 0) {
-    _d = read(&reader, 9) - 255;
-  } else if (read(&reader, 1) == 0) {
-    _d = read(&reader, 12) - 2047;
-  } else {
-    _d = (int)read(&reader, 32);
-  }
-
-  value.i = recoverInterval(_d);
-  return value.i;
-}
-
-double GorillaXORDecompressor::nextValue() {
-  if (opts.getIsTimestamp()) {
-    return nextTimestampValue();
-  } else {
-    return nextFloatValue();
-  }
 }

@@ -1,6 +1,6 @@
-#include "AbstractXORCompressor.h"
+#include "AbstractCompressor.h"
 
-class GorillaXORCompressor : public AbstractXORCompressor {
+class GorillaXORCompressor : public AbstractCompressor {
 private:
   uint64_t prevLeading = -1L;
   uint64_t prevTrailing = 0;
@@ -11,9 +11,6 @@ private:
   double sum;
 
   uint64_t calculateXOR(long value);
-  uint64_t calculateInterval(long value);
   void writeFirst(long value);
-  void compressInterval(long _d);
-  void compressXOR(uint64_t _d);
   void compressValue(long value);
 };

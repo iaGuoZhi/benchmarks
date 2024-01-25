@@ -6,7 +6,7 @@
 #include "options.h"
 #include "defs.h"
 
-class AbstractXORDecompressor {
+class AbstractDecompressor {
 protected:
   bool first = true;
   CombOptions opts;

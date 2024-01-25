@@ -1,13 +1,13 @@
 #include <stdlib.h>
 #include "options.h"
 #include "defs.h"
-#include "AbstractXORCompressor.h"
+#include "AbstractCompressor.h"
 
-class EraserCompressor {
+class Eraser {
 private:
   int lastBetaStar = __INT32_MAX__;
   CombOptions opts;
-  AbstractXORCompressor *xorCompressor;
+  AbstractCompressor *compressor;
 
   int writeInt(int n, int len);
   int writeBit(bool bit);
@@ -15,7 +15,7 @@ private:
   bool useEraser();
 
 public:
-  EraserCompressor(const char *options);
+  Eraser(const char *options);
   void init(int length);
   uint32_t *getBytes();
   void close();

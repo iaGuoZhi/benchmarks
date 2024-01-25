@@ -8,13 +8,12 @@ class CombOptions {
 
 public:
 enum XOR_type { Delta, DeltaOfDelta};
-enum Compress_algo { Gorilla, Chimp, Elf};
+enum Compress_algo { Gorilla, Chimp, Elf, Timestamp};
 
 private:
   XOR_type xor_type = Delta;
   Compress_algo compress_algo = Gorilla;
   bool use_eraser = false;
-  bool is_timestamp = false;
 
 public:
   CombOptions(const char* options) {
@@ -35,10 +34,10 @@ public:
         compress_algo = Chimp;
       } else if (strcmp(token, "elf") == 0) {
         compress_algo = Elf;
+      } else if (strcmp(token, "timestamp") == 0) {
+        compress_algo = Timestamp;
       } else if (strcmp(token, "eraser") == 0) {
         use_eraser = true;
-      } else if (strcmp(token, "timestamp") == 0) {
-        is_timestamp = true;
       } else {
         printf("Unknown option: %s\n", token);
       }
@@ -55,6 +54,5 @@ public:
 
   XOR_type getXORType() { return xor_type; }
   Compress_algo getCompressAlgo() { return compress_algo; }
-  bool getIsTimestamp() { return is_timestamp; }
   bool getUseEraser() { return use_eraser; }
 };

@@ -1,6 +1,6 @@
-#include "AbstractXORCompressor.h"
+#include "AbstractCompressor.h"
 
-class ChimpXORCompressor : public AbstractXORCompressor {
+class ChimpXORCompressor : public AbstractCompressor {
 private:
   const int32_t PREVIOUS_VALUES = 128;
   int32_t storedLeadingZeros = INT32_MAX;

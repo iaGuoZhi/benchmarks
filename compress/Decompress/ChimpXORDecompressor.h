@@ -1,6 +1,6 @@
-#include "AbstractXORDecompressor.h"
+#include "AbstractDecompressor.h"
 
-class ChimpXORDecompressor : public AbstractXORDecompressor {
+class ChimpXORDecompressor : public AbstractDecompressor {
 private:
   DOUBLE prevVal = {.i = 0}, value = {.i = 0};
   const int PREVIOUS_VALUES = 128;

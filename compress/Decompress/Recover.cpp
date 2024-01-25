@@ -1,14 +1,14 @@
-#include "RecoverDecompressor.h"
+#include "Recover.h"
 
-double RecoverDecompressor::nextValue() {
+double Recover::nextValue() {
   double v;
   if (!useEraser()) {
-    v = xorDecompress();
+    v = Decompress();
   } else {
     if (readInt(1) == 0) {
       v = recoverVByBetaStar();
     } else if (readInt(1) == 0) {
-      v = xorDecompress();
+      v = Decompress();
     } else {
       lastBetaStar = readInt(4);
       v = recoverVByBetaStar();
@@ -17,9 +17,9 @@ double RecoverDecompressor::nextValue() {
   return v;
 }
 
-double RecoverDecompressor::recoverVByBetaStar() {
+double Recover::recoverVByBetaStar() {
   double v;
-  double vPrime = xorDecompress();
+  double vPrime = Decompress();
   int sp = getSP(abs(vPrime));
   if (lastBetaStar == 0) {
     v = get10iN(-sp - 1);
@@ -33,28 +33,31 @@ double RecoverDecompressor::recoverVByBetaStar() {
   return v;
 }
 
-RecoverDecompressor::RecoverDecompressor(uint8_t *in, size_t len, const char *options) {
+Recover::Recover(uint8_t *in, size_t len, const char *options) {
   if (options != NULL) {
     opts = CombOptions(options);
   }
   switch (opts.getCompressAlgo()) {
     case CombOptions::Compress_algo::Gorilla:
-      xorDecompressor = new GorillaXORDecompressor();
+      decompressor = new GorillaXORDecompressor();
       break;
     case CombOptions::Compress_algo::Chimp:
-      xorDecompressor = new ChimpXORDecompressor();
+      decompressor = new ChimpXORDecompressor();
       break;
     case CombOptions::Compress_algo::Elf:
-      xorDecompressor = new ElfXORDecompressor();
+      decompressor = new ElfXORDecompressor();
+      break;
+    case CombOptions::Compress_algo::Timestamp:
+      decompressor = new TimestampDecompressor();
       break;
     default:
-      xorDecompressor = new ElfXORDecompressor();
+      decompressor = new GorillaXORDecompressor();
       break;
   }
-  xorDecompressor->init((uint32_t *)in, len / 4, opts);
+  decompressor->init((uint32_t *)in, len / 4, opts);
 }
 
-int RecoverDecompressor::decompress(double *output) {
+int Recover::decompress(double *output) {
   int len = getLength();
   for (int i = 0; i < len; i++) {
     if (i == 4219) {

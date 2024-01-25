@@ -6,7 +6,7 @@
 #include "options.h"
 #include "defs.h"
 
-class AbstractXORCompressor {
+class AbstractCompressor {
 protected:
   bool first = true;
   size_t length = 0;

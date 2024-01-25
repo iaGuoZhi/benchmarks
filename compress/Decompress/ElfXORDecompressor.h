@@ -1,8 +1,8 @@
-#include "AbstractXORDecompressor.h"
+#include "AbstractDecompressor.h"
 
 static const short leadingRepresentation[] = {0, 8, 12, 16, 18, 20, 22, 24};
 
-class ElfXORDecompressor : public AbstractXORDecompressor {
+class ElfXORDecompressor : public AbstractDecompressor {
 private:
   DOUBLE storedVal = {.i = 0};
   int storedLeadingZeros = __INT32_MAX__;
