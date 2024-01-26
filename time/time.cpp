@@ -34,9 +34,9 @@ inline uint64_t cpu_freq() {
 }
 
 inline uint64_t read_pmc(int counter) {
-    uint32_t low, high;
-    __asm__ volatile("rdpmc" : "=a" (low), "=d" (high) : "c" (counter));
-    return ((uint64_t)high << 32) | low;
+  uint32_t low, high;
+  __asm__ volatile("rdpmc" : "=a" (low), "=d" (high) : "c" (counter));
+  return ((uint64_t)high << 32) | low;
 }
 
 int main() {

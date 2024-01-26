@@ -13,6 +13,7 @@
 - [ ] (mmap)
 - [ ] (iouring)
 - [ ] (malloc)
+- [ ] (hugepage)
 - [ ] (memory order)
 - [ ] (context switch)
 - [ ] (virtualization)
