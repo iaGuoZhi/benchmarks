@@ -1,0 +1,3 @@
+[submodule "hugepage/code-segment/iodlr"]
+	path = hugepage/code-segment/iodlr
+	url = https://github.com/intel/iodlr.git
