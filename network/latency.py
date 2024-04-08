@@ -16,7 +16,7 @@ site_list = {
 country_list = {
     "us": "www.google.com",
     "cn": "www.baidu.com",
-    "hk": "www.google.com.hk",
+    "hk(cn)": "www.google.com.hk",
     "sg": "www.google.com.sg",
     "jp": "www.yahoo.co.jp",
     "uk": "www.bbc.co.uk",
