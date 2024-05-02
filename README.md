@@ -18,3 +18,5 @@
 - [ ] (context switch)
 - [ ] (virtualization)
 - [x] (compression)
+
+https://github.com/Kobzol/hardware-effects
